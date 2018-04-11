@@ -30,6 +30,9 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
+        private TgcScene SceneNave { get; set; }
+
+        bool rotate = false;
         //Caja que se muestra en el ejemplo.
         private TGCBox Box { get; set; }
 
@@ -66,22 +69,37 @@ namespace TGC.Group.Model
             //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
             Box.Position = new TGCVector3(-25, 0, 0);
 
-            //Cargo el unico mesh que tiene la escena.
-            Mesh = new TgcSceneLoader().loadSceneFromFile(MediaDir + "LogoTGC-TgcScene.xml").Meshes[0];
+            // IMPORTANTE: UBICAR LA CARPETA MEDIA EN 2018_1C_3051_Matota\TGC.Group
+
+            //La nave tiene mas de un Mesh, si se toma el primero hay parte que no se esta teniendo en cuenta y terminamos teniendo parte de la nave en vez de toda la nave.
+            this.SceneNave = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/xwing-TgcScene.xml", MediaDir + "XWing/");
+
+            this.ActionOnNave((mesh) => {
+                mesh.Scale = new TGCVector3(0.5f, 0.5f, 0.5f);
+                mesh.RotateY(FastMath.PI_HALF); //rotar la nave para que quede la parte de atras mirando a la camara.
+            });
+
+
             //Defino una escala en el modelo logico del mesh que es muy grande.
+            /*
+            Mesh.UpdateMeshTransform();
             Mesh.Scale = new TGCVector3(0.5f, 0.5f, 0.5f);
+
+            Mesh.RotateY(1.5f);*/
 
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
             //Posición de la camara.
-            var cameraPosition = new TGCVector3(0, 0, 125);
+            var cameraPosition = new TGCVector3(0, 0, 0);
             //Quiero que la camara mire hacia el origen (0,0,0).
             var lookAt = TGCVector3.Empty;
             //Configuro donde esta la posicion de la camara y hacia donde mira.
             Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
+
+            Camara = new CamaraStarWars(this.SceneNave.Meshes[0].Position, 50, 100);
         }
 
         /// <summary>
@@ -94,25 +112,53 @@ namespace TGC.Group.Model
             PreUpdate();
 
             //Capturar Input teclado
-            if (Input.keyPressed(Key.F))
+            if (base.Input.keyPressed(Key.F))
             {
                 BoundingBox = !BoundingBox;
             }
 
-            //Capturar Input Mouse
-            if (Input.buttonUp(TgcD3dInput.MouseButtons.BUTTON_LEFT))
-            {
-                //Como ejemplo podemos hacer un movimiento simple de la cámara.
-                //En este caso le sumamos un valor en Y
-                Camara.SetCamera(Camara.Position + new TGCVector3(0, 10f, 0), Camara.LookAt);
-                //Ver ejemplos de cámara para otras operaciones posibles.
+            var movimientoNave = TGCVector3.Empty;
 
-                //Si superamos cierto Y volvemos a la posición original.
-                if (Camara.Position.Y > 300f)
+            //Movernos de izquierda a derecha, sobre el eje X.
+            if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
+                movimientoNave.X = 1;
+            else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
+                movimientoNave.X = -1;
+
+            //Movernos adelante y atras, sobre el eje Z.
+            if (Input.keyDown(Key.Up) || Input.keyDown(Key.W))
+                movimientoNave.Z = -1;
+            else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
+                movimientoNave.Z = 1;
+
+            //Activar BarrelRoll 
+            //TODO: Implementar cooldown?
+            if(Input.keyDown(Key.Space))
+                rotate = true;
+
+            // esta hecho a las apuradas pero si se apreta espacio hace el barrel roll, despues habria que mejorarlo!
+            if(rotate)
+            {
+                if(this.SceneNave.Meshes[0].Rotation.X <= -FastMath.TWO_PI)
                 {
-                    Camara.SetCamera(new TGCVector3(Camara.Position.X, 0f, Camara.Position.Z), Camara.LookAt);
-                }
+                    rotate = false;
+                    this.ActionOnNave((mesh) => {
+                        mesh.RotateX(FastMath.TWO_PI);
+                    });
+                } else
+                    this.ActionOnNave((mesh) => {
+                        mesh.RotateX(-0.03f);
+                    });
             }
+
+            //Multiplicar movimiento por velocidad y elapsedTime
+            movimientoNave *= 100f * ElapsedTime;
+
+            this.ActionOnNave((mesh) => {
+                mesh.Move(movimientoNave);
+            });
+
+            (this.Camara as CamaraStarWars).Target = this.SceneNave.Meshes[0].Position;
 
             PostUpdate();
         }
@@ -127,10 +173,8 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-            //Dibuja un texto por pantalla
-            DrawText.drawText("Con la tecla F se dibuja el bounding box.", 0, 20, Color.OrangeRed);
-            DrawText.drawText("Con clic izquierdo subimos la camara [Actual]: " + TGCVector3.PrintVector3(Camara.Position), 0, 30, Color.OrangeRed);
-
+            DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.SceneNave.Meshes[0].Rotation), 0, 30, Color.White);
+            
             //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
             //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
             Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
@@ -140,15 +184,25 @@ namespace TGC.Group.Model
 
             //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
             //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
-            Mesh.UpdateMeshTransform();
+            /*Mesh.UpdateMeshTransform();
             //Render del mesh
-            Mesh.Render();
+            Mesh.Render();*/
+
+            this.ActionOnNave((mesh) => {
+                mesh.UpdateMeshTransform(); //que hace?
+            });
+
+
+            this.SceneNave.RenderAll();
 
             //Render de BoundingBox, muy útil para debug de colisiones.
             if (BoundingBox)
             {
                 Box.BoundingBox.Render();
-                Mesh.BoundingBox.Render();
+                //Mesh.BoundingBox.Render();
+                this.SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
+               
+              
             }
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
@@ -165,7 +219,12 @@ namespace TGC.Group.Model
             //Dispose de la caja.
             Box.Dispose();
             //Dispose del mesh.
-            Mesh.Dispose();
+            this.SceneNave.DisposeAll();
+        }
+
+        private void ActionOnNave(System.Action<TgcMesh> action)
+        {
+            this.SceneNave.Meshes.ForEach(action);
         }
     }
 }
