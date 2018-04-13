@@ -31,7 +31,7 @@ namespace TGC.Group.Model
         }
 
         private TgcScene SceneNave { get; set; }
-
+        private TgcScene SceneEstrellaDeLaMuerte { get; set; }
         bool rotate = false;
         //Caja que se muestra en el ejemplo.
         private TGCBox Box { get; set; }
@@ -70,7 +70,7 @@ namespace TGC.Group.Model
             Box.Position = new TGCVector3(-25, 0, 0);
 
             // IMPORTANTE: UBICAR LA CARPETA MEDIA EN 2018_1C_3051_Matota\TGC.Group
-
+            SceneEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star2-TgcScene.xml", MediaDir + "XWing/");
             //La nave tiene mas de un Mesh, si se toma el primero hay parte que no se esta teniendo en cuenta y terminamos teniendo parte de la nave en vez de toda la nave.
             this.SceneNave = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/xwing-TgcScene.xml", MediaDir + "XWing/");
 
@@ -130,7 +130,14 @@ namespace TGC.Group.Model
                 movimientoNave.Z = -1;
             else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
                 movimientoNave.Z = 1;
-
+            //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
+            if (Input.keyDown(Key.E))
+                movimientoNave.Y = 1;
+            else if (Input.keyDown(Key.LeftControl))
+                movimientoNave.Y = -1;
+            //boost de velocidad con shift
+            if (Input.keyDown(Key.LeftShift))
+                movimientoNave.Z = -5;
             //Activar BarrelRoll 
             //TODO: Implementar cooldown?
             if(Input.keyDown(Key.Space))
@@ -157,7 +164,9 @@ namespace TGC.Group.Model
             this.ActionOnNave((mesh) => {
                 mesh.Move(movimientoNave);
             });
-
+            this.ActionOnScene((mesh) => {
+                mesh.Scale = new TGCVector3(50f, 80f, 50f);
+            });
             (this.Camara as CamaraStarWars).Target = this.SceneNave.Meshes[0].Position;
 
             PostUpdate();
@@ -181,7 +190,7 @@ namespace TGC.Group.Model
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
             Box.Render();
-
+            this.SceneEstrellaDeLaMuerte.RenderAll();
             //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
             //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
             /*Mesh.UpdateMeshTransform();
@@ -201,8 +210,10 @@ namespace TGC.Group.Model
                 Box.BoundingBox.Render();
                 //Mesh.BoundingBox.Render();
                 this.SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
-               
-              
+                this.SceneEstrellaDeLaMuerte.BoundingBox.Render();
+
+
+
             }
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
@@ -220,11 +231,16 @@ namespace TGC.Group.Model
             Box.Dispose();
             //Dispose del mesh.
             this.SceneNave.DisposeAll();
+            this.SceneEstrellaDeLaMuerte.DisposeAll();
         }
 
         private void ActionOnNave(System.Action<TgcMesh> action)
         {
             this.SceneNave.Meshes.ForEach(action);
+        }
+        private void ActionOnScene(System.Action<TgcMesh> action)
+        {
+            this.SceneEstrellaDeLaMuerte.Meshes.ForEach(action);
         }
     }
 }
