@@ -7,6 +7,7 @@ using TGC.Core.Input;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
+using TGC.Core.Sound;
 
 namespace TGC.Group.Model
 {
@@ -30,17 +31,28 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
+        //Scenes
         private TgcScene SceneNave { get; set; }
         private TgcScene SceneEstrellaDeLaMuerte { get; set; }
+        private TgcScene LeftWallEstrellaDeLaMuerte { get; set; }
+        private TgcScene RightWallEstrellaDeLaMuerte { get; set; }
+
+        //Sounds
+        //private TgcMp3Player sonidoAmbiente;
+        //private TgcMp3Player sonidoRotacion;
+        //private TgcMp3Player sonidoVelocidad;
+
         bool rotate = false;
-        //Caja que se muestra en el ejemplo.
+
+        //Codigo De caja previo
+        /*//Caja que se muestra en el ejemplo.
         private TGCBox Box { get; set; }
 
         //Mesh de TgcLogo.
         private TgcMesh Mesh { get; set; }
 
         //Boleano para ver si dibujamos el boundingbox
-        private bool BoundingBox { get; set; }
+        private bool BoundingBox { get; set; }*/
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -53,7 +65,8 @@ namespace TGC.Group.Model
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
 
-            //Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
+            //Codigo ejemplo donde se muestra como configurar y cargar mesh
+            /*//Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
             var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
 
@@ -67,10 +80,24 @@ namespace TGC.Group.Model
             Box = TGCBox.fromSize(size, texture);
             //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
             //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new TGCVector3(-25, 0, 0);
+            Box.Position = new TGCVector3(-25, 0, 0);*/
 
             // IMPORTANTE: UBICAR LA CARPETA MEDIA EN 2018_1C_3051_Matota\TGC.Group
             SceneEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star2-TgcScene.xml", MediaDir + "XWing/");
+            LeftWallEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/m3-TgcScene.xml", MediaDir + "XWing/");
+            RightWallEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/m1-TgcScene.xml", MediaDir + "XWing/");
+
+            
+            this.ActionOnSceneWallLeft((mesh) =>{
+                mesh.Scale = new TGCVector3(100f, 100f, 100f);
+                mesh.RotateZ(FastMath.PI_HALF);
+                mesh.Position = new TGCVector3(-2000f, 0, 0);
+            });
+            this.ActionOnSceneWallRight((mesh) => {
+                mesh.Scale = new TGCVector3(100f, 100f, 100f);
+                mesh.RotateZ(FastMath.PI_HALF);
+                mesh.Position = new TGCVector3(2000f, 0, 0);
+            });
             //La nave tiene mas de un Mesh, si se toma el primero hay parte que no se esta teniendo en cuenta y terminamos teniendo parte de la nave en vez de toda la nave.
             this.SceneNave = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/xwing-TgcScene.xml", MediaDir + "XWing/");
 
@@ -110,12 +137,13 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-
-            //Capturar Input teclado
+            
+            //Coidigo Ejemplo de como capturar teclas
+            /*//Capturar Input teclado
             if (base.Input.keyPressed(Key.F))
             {
                 BoundingBox = !BoundingBox;
-            }
+            }*/
 
             var movimientoNave = TGCVector3.Empty;
 
@@ -183,14 +211,20 @@ namespace TGC.Group.Model
             PreRender();
 
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.SceneNave.Meshes[0].Rotation), 0, 30, Color.White);
-            
+           
+            /*Ejemplo de como renderesar
+             * 
+             * 
             //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
             //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
             Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
             //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
             //Finalmente invocamos al render de la caja
-            Box.Render();
+            Box.Render();*/
+
             this.SceneEstrellaDeLaMuerte.RenderAll();
+            this.LeftWallEstrellaDeLaMuerte.RenderAll();
+            this.RightWallEstrellaDeLaMuerte.RenderAll();
             //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
             //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
             /*Mesh.UpdateMeshTransform();
@@ -205,16 +239,18 @@ namespace TGC.Group.Model
             this.SceneNave.RenderAll();
 
             //Render de BoundingBox, muy útil para debug de colisiones.
-            if (BoundingBox)
-            {
-                Box.BoundingBox.Render();
+           // if (BoundingBox)
+            //{
+                //Box.BoundingBox.Render();
                 //Mesh.BoundingBox.Render();
-                this.SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
-                this.SceneEstrellaDeLaMuerte.BoundingBox.Render();
+        SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
+        SceneEstrellaDeLaMuerte.BoundingBox.Render();
+        LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
+        RightWallEstrellaDeLaMuerte.BoundingBox.Render();
 
 
 
-            }
+           // }
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -228,10 +264,12 @@ namespace TGC.Group.Model
         public override void Dispose()
         {
             //Dispose de la caja.
-            Box.Dispose();
+            //Box.Dispose();
             //Dispose del mesh.
             this.SceneNave.DisposeAll();
             this.SceneEstrellaDeLaMuerte.DisposeAll();
+            this.LeftWallEstrellaDeLaMuerte.DisposeAll();
+            this.RightWallEstrellaDeLaMuerte.DisposeAll();
         }
 
         private void ActionOnNave(System.Action<TgcMesh> action)
@@ -241,6 +279,14 @@ namespace TGC.Group.Model
         private void ActionOnScene(System.Action<TgcMesh> action)
         {
             this.SceneEstrellaDeLaMuerte.Meshes.ForEach(action);
+        }
+        private void ActionOnSceneWallLeft(System.Action<TgcMesh> action)
+        {
+            this.LeftWallEstrellaDeLaMuerte.Meshes.ForEach(action);
+        }
+        private void ActionOnSceneWallRight(System.Action<TgcMesh> action)
+        {
+            this.RightWallEstrellaDeLaMuerte.Meshes.ForEach(action);
         }
     }
 }
