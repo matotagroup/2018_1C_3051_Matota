@@ -9,7 +9,6 @@
 
 #------AGREGADO PARA EL TP-------
 #Por el momento ignorar la carpeta media en git, cuando tengamos todo bien definido ahi pasamos los modelos propios, por ahora usar la carpeta media entera que provee la catedra.
-[Mm]edia/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
