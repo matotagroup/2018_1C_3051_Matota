@@ -32,7 +32,7 @@ namespace TGC.Group.Model
         }
 
         //Scenes
-        private TgcScene SceneNave { get; set; }
+        private NaveEspacial navePrincipal;
         private TgcScene SceneEstrellaDeLaMuerte { get; set; }
         private TgcScene LeftWallEstrellaDeLaMuerte { get; set; }
         private TgcScene RightWallEstrellaDeLaMuerte { get; set; }
@@ -41,8 +41,6 @@ namespace TGC.Group.Model
         //private TgcMp3Player sonidoAmbiente;
         //private TgcMp3Player sonidoRotacion;
         //private TgcMp3Player sonidoVelocidad;
-
-        bool rotate = false;
 
         //Codigo De caja previo
         /*//Caja que se muestra en el ejemplo.
@@ -65,6 +63,10 @@ namespace TGC.Group.Model
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
 
+            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml");
+            this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
+            this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
+
             //Codigo ejemplo donde se muestra como configurar y cargar mesh
             /*//Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
             //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
@@ -83,30 +85,30 @@ namespace TGC.Group.Model
             Box.Position = new TGCVector3(-25, 0, 0);*/
 
             // IMPORTANTE: UBICAR LA CARPETA MEDIA EN 2018_1C_3051_Matota\TGC.Group
-            SceneEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star2-TgcScene.xml", MediaDir + "XWing/");
-            LeftWallEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/m3-TgcScene.xml", MediaDir + "XWing/");
+            SceneEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star-TgcScene.xml", MediaDir + "XWing/");
+            LeftWallEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star-TgcScene.xml", MediaDir + "XWing/");
             RightWallEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/m1-TgcScene.xml", MediaDir + "XWing/");
 
+            this.ActionOnScene((mesh) => {
+                mesh.AutoTransform = false;
+                mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF);
+            });
+            
             
             this.ActionOnSceneWallLeft((mesh) =>{
-                mesh.Scale = new TGCVector3(100f, 100f, 100f);
-                mesh.RotateZ(FastMath.PI_HALF);
-                mesh.Position = new TGCVector3(-2000f, 0, 0);
+                mesh.AutoTransform = false;
+                mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF) * TGCMatrix.Translation(new TGCVector3(0,0,-8500f));
             });
+
             this.ActionOnSceneWallRight((mesh) => {
                 mesh.Scale = new TGCVector3(100f, 100f, 100f);
                 mesh.RotateZ(FastMath.PI_HALF);
                 mesh.Position = new TGCVector3(2000f, 0, 0);
             });
             //La nave tiene mas de un Mesh, si se toma el primero hay parte que no se esta teniendo en cuenta y terminamos teniendo parte de la nave en vez de toda la nave.
-            this.SceneNave = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/xwing-TgcScene.xml", MediaDir + "XWing/");
-
-            this.ActionOnNave((mesh) => {
-                mesh.Scale = new TGCVector3(0.5f, 0.5f, 0.5f);
-                mesh.RotateY(FastMath.PI_HALF); //rotar la nave para que quede la parte de atras mirando a la camara.
-            });
 
 
+            
             //Defino una escala en el modelo logico del mesh que es muy grande.
             /*
             Mesh.UpdateMeshTransform();
@@ -126,7 +128,7 @@ namespace TGC.Group.Model
             //Internamente el framework construye la matriz de view con estos dos vectores.
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
-            Camara = new CamaraStarWars(this.SceneNave.Meshes[0].Position, 50, 100);
+            Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
         }
 
         /// <summary>
@@ -157,7 +159,7 @@ namespace TGC.Group.Model
             if (Input.keyDown(Key.Up) || Input.keyDown(Key.W))
                 movimientoNave.Z = -1;
             else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
-                movimientoNave.Z = 1;
+                movimientoNave.Z = 5;
             //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
             if (Input.keyDown(Key.E))
                 movimientoNave.Y = 1;
@@ -168,34 +170,14 @@ namespace TGC.Group.Model
                 movimientoNave.Z = -5;
             //Activar BarrelRoll 
             //TODO: Implementar cooldown?
-            if(Input.keyDown(Key.Space))
-                rotate = true;
+            if (Input.keyDown(Key.Space))
+                this.navePrincipal.DoBarrelRoll();
 
-            // esta hecho a las apuradas pero si se apreta espacio hace el barrel roll, despues habria que mejorarlo!
-            if(rotate)
-            {
-                if(this.SceneNave.Meshes[0].Rotation.X <= -FastMath.TWO_PI)
-                {
-                    rotate = false;
-                    this.ActionOnNave((mesh) => {
-                        mesh.RotateX(FastMath.TWO_PI);
-                    });
-                } else
-                    this.ActionOnNave((mesh) => {
-                        mesh.RotateX(-0.03f);
-                    });
-            }
+            //Actualiza la matrix de movimiento de la nave.
+            this.navePrincipal.Move(movimientoNave * ElapsedTime);
 
-            //Multiplicar movimiento por velocidad y elapsedTime
-            movimientoNave *= 100f * ElapsedTime;
 
-            this.ActionOnNave((mesh) => {
-                mesh.Move(movimientoNave);
-            });
-            this.ActionOnScene((mesh) => {
-                mesh.Scale = new TGCVector3(50f, 80f, 50f);
-            });
-            (this.Camara as CamaraStarWars).Target = this.SceneNave.Meshes[0].Position;
+            (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
             PostUpdate();
         }
@@ -210,8 +192,11 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-            DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.SceneNave.Meshes[0].Rotation), 0, 30, Color.White);
-           
+            //DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.SceneNave.Meshes[0].Rotation), 0, 30, Color.White);
+
+            DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
+            DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
+            DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
             /*Ejemplo de como renderesar
              * 
              * 
@@ -224,26 +209,31 @@ namespace TGC.Group.Model
 
             this.SceneEstrellaDeLaMuerte.RenderAll();
             this.LeftWallEstrellaDeLaMuerte.RenderAll();
-            this.RightWallEstrellaDeLaMuerte.RenderAll();
+            //this.RightWallEstrellaDeLaMuerte.RenderAll();
             //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
             //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
             /*Mesh.UpdateMeshTransform();
             //Render del mesh
             Mesh.Render();*/
 
-            this.ActionOnNave((mesh) => {
-                mesh.UpdateMeshTransform(); //que hace?
-            });
 
+            this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
 
-            this.SceneNave.RenderAll();
+            this.navePrincipal.Render();
+
+            //this.ActionOnNave((mesh) => {
+            //    mesh.Transform = mesh.Transform;
+            //    mesh.Transform = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f) * TGCMatrix.RotationY(FastMath.PI_HALF);
+            //    mesh.Render();
+            //});
+            //this.SceneNave.RenderAll();
 
             //Render de BoundingBox, muy útil para debug de colisiones.
            // if (BoundingBox)
             //{
                 //Box.BoundingBox.Render();
                 //Mesh.BoundingBox.Render();
-        SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
+        //SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
         SceneEstrellaDeLaMuerte.BoundingBox.Render();
         LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
         RightWallEstrellaDeLaMuerte.BoundingBox.Render();
@@ -266,16 +256,12 @@ namespace TGC.Group.Model
             //Dispose de la caja.
             //Box.Dispose();
             //Dispose del mesh.
-            this.SceneNave.DisposeAll();
+            this.navePrincipal.Scene.DisposeAll();
             this.SceneEstrellaDeLaMuerte.DisposeAll();
             this.LeftWallEstrellaDeLaMuerte.DisposeAll();
             this.RightWallEstrellaDeLaMuerte.DisposeAll();
         }
 
-        private void ActionOnNave(System.Action<TgcMesh> action)
-        {
-            this.SceneNave.Meshes.ForEach(action);
-        }
         private void ActionOnScene(System.Action<TgcMesh> action)
         {
             this.SceneEstrellaDeLaMuerte.Meshes.ForEach(action);
