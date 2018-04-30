@@ -48,12 +48,11 @@ namespace TGC.Group
 
         public void CreateOOB()
         {
-
-            this.OOB = TgcBoundingOrientedBox.computeFromAABB(Scene.BoundingBox);
+            //Hacemos un OOB a partir de un AABB mas chico porque el original es muy grande.
+            this.OOB = TgcBoundingOrientedBox.computeFromAABB(new TgcBoundingAxisAlignBox(TGCVector3.Multiply(Scene.BoundingBox.PMin, 0.5f), TGCVector3.Multiply(Scene.BoundingBox.PMax, 0.5f)));
             this.OOB.move(this.MovementVector);
             this.OOB.rotate(this.RotationVector);
         }
-
 
         public TGCMatrix RotationMatrix()
         {

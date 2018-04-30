@@ -10,6 +10,7 @@ using TGC.Core.Textures;
 using TGC.Core.Sound;
 using TGC.Core.Terrain;
 using Microsoft.DirectX;
+using TGC.Core.Collision;
 
 namespace TGC.Group.Model
 {
@@ -32,6 +33,9 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
+
+        //Esto se debe mover a la clase de la estrella de la muerte
+        private bool shouldMove = false;
 
         //Scenes
         private NaveEspacial navePrincipal;
@@ -101,9 +105,14 @@ namespace TGC.Group.Model
                 mesh.AutoTransform = false;
                 mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF);
                 mesh.setColor(Color.Gray);
+                mesh.AutoUpdateBoundingBox = true;
+                mesh.updateBoundingBox();
             });
-            
-            
+
+            //Actualiza el bounding box!
+            SceneEstrellaDeLaMuerte.BoundingBox.scaleTranslate(SceneEstrellaDeLaMuerte.Meshes[0].Position, new TGCVector3(50f, 200f, 80f));
+
+
             this.ActionOnSceneWallLeft((mesh) =>{
                 mesh.AutoTransform = false;
                 mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF) * TGCMatrix.Translation(new TGCVector3(0,0,-8500f));
@@ -186,6 +195,20 @@ namespace TGC.Group.Model
             if (Input.keyDown(Key.Space))
                 this.navePrincipal.DoBarrelRoll();
 
+
+            if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, SceneEstrellaDeLaMuerte.BoundingBox) && !shouldMove)
+            {
+                shouldMove = true; //Esto es a modo de ejemplo, tendria que haber un bool por cada scene de estrella y una comprobacion por c/u de ellas tambien, usar abstraccion en una clase y tener una lista de scenes!
+                this.navePrincipal.OOB.setRenderColor(Color.Red);
+            }
+            //una vez movido setear a false para no volver a mover, cuando sea true de nuevo (no va a pasar en este caso)
+
+            if (shouldMove)
+                this.ActionOnScene((mesh) => {
+                    mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF) * TGCMatrix.Translation(new TGCVector3(0, 0, -17000f));
+                    //cada vez que se mueve el mesh entero hay que actualizar su bounding box
+                });
+
             //Actualiza la matrix de movimiento de la nave.
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
 
@@ -244,12 +267,13 @@ namespace TGC.Group.Model
             //this.SceneNave.RenderAll();
 
             //Render de BoundingBox, muy útil para debug de colisiones.
-           // if (BoundingBox)
+            // if (BoundingBox)
             //{
-                //Box.BoundingBox.Render();
-                //Mesh.BoundingBox.Render();
-        //SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
-        //SceneEstrellaDeLaMuerte.BoundingBox.Render();
+            //Box.BoundingBox.Render();
+            //Mesh.BoundingBox.Render();
+            //SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
+            
+        SceneEstrellaDeLaMuerte.BoundingBox.Render();
         //LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
         //RightWallEstrellaDeLaMuerte.BoundingBox.Render();
 
