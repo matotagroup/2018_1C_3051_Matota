@@ -8,6 +8,8 @@ using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Textures;
 using TGC.Core.Sound;
+using TGC.Core.Terrain;
+using Microsoft.DirectX;
 
 namespace TGC.Group.Model
 {
@@ -37,6 +39,9 @@ namespace TGC.Group.Model
         private TgcScene LeftWallEstrellaDeLaMuerte { get; set; }
         private TgcScene RightWallEstrellaDeLaMuerte { get; set; }
 
+        private TgcSkyBox skyBox;
+
+
         //Sounds
         //private TgcMp3Player sonidoAmbiente;
         //private TgcMp3Player sonidoRotacion;
@@ -62,27 +67,30 @@ namespace TGC.Group.Model
         {
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
+            D3DDevice.Instance.Device.Transform.Projection =
+                Matrix.PerspectiveFovLH(D3DDevice.Instance.FieldOfView,
+                    D3DDevice.Instance.AspectRatio,
+                    D3DDevice.Instance.ZNearPlaneDistance,
+                    D3DDevice.Instance.ZFarPlaneDistance * 1.8f);
+
+            //Crear SkyBox
+            skyBox = new TgcSkyBox();
+            skyBox.Center = new TGCVector3(0, 0, -2300f);
+            skyBox.Size = new TGCVector3(10000, 5500, 18000);
+            var texturesPath = MediaDir + "XWing\\Textures\\";
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "space.jpg");
+              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "space.jpg");
+              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "space.jpg");
+              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "space.jpg");
+              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "space.jpg");
+              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "space.jpg");
+              
+            skyBox.Init();
 
             this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml");
             this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
-
-            //Codigo ejemplo donde se muestra como configurar y cargar mesh
-            /*//Textura de la carperta Media. Game.Default es un archivo de configuracion (Game.settings) util para poner cosas.
-            //Pueden abrir el Game.settings que se ubica dentro de nuestro proyecto para configurar.
-            var pathTexturaCaja = MediaDir + Game.Default.TexturaCaja;
-
-            //Cargamos una textura, tener en cuenta que cargar una textura significa crear una copia en memoria.
-            //Es importante cargar texturas en Init, si se hace en el render loop podemos tener grandes problemas si instanciamos muchas.
-            var texture = TgcTexture.createTexture(pathTexturaCaja);
-
-            //Creamos una caja 3D ubicada de dimensiones (5, 10, 5) y la textura como color.
-            var size = new TGCVector3(5, 10, 5);
-            //Construimos una caja según los parámetros, por defecto la misma se crea con centro en el origen y se recomienda así para facilitar las transformaciones.
-            Box = TGCBox.fromSize(size, texture);
-            //Posición donde quiero que este la caja, es común que se utilicen estructuras internas para las transformaciones.
-            //Entonces actualizamos la posición lógica, luego podemos utilizar esto en render para posicionar donde corresponda con transformaciones.
-            Box.Position = new TGCVector3(-25, 0, 0);*/
+            this.navePrincipal.MovementVector = new TGCVector3(1200, -1100f, 4000f);
 
             // IMPORTANTE: UBICAR LA CARPETA MEDIA EN 2018_1C_3051_Matota\TGC.Group
             SceneEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star-TgcScene.xml", MediaDir + "XWing/");
@@ -92,12 +100,16 @@ namespace TGC.Group.Model
             this.ActionOnScene((mesh) => {
                 mesh.AutoTransform = false;
                 mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF);
+                mesh.setColor(Color.Gray);
             });
             
             
             this.ActionOnSceneWallLeft((mesh) =>{
                 mesh.AutoTransform = false;
                 mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF) * TGCMatrix.Translation(new TGCVector3(0,0,-8500f));
+                mesh.setColor(Color.Gray);
+                //es medio loco el valor que hay que ponerle al translate para que no se solapeen los mesh, no se entiende mucho de donde sale 8500, pero el tema es que
+                // el mesh ya de por si tiene un tamaño que no podemos acceder entonces aunque apliquemos la escala no tenemos el valor base como para aplicar esos offsets
             });
 
             this.ActionOnSceneWallRight((mesh) => {
@@ -107,6 +119,7 @@ namespace TGC.Group.Model
             });
             //La nave tiene mas de un Mesh, si se toma el primero hay parte que no se esta teniendo en cuenta y terminamos teniendo parte de la nave en vez de toda la nave.
 
+            this.navePrincipal.CreateOOB();
 
             
             //Defino una escala en el modelo logico del mesh que es muy grande.
@@ -194,6 +207,8 @@ namespace TGC.Group.Model
 
             //DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.SceneNave.Meshes[0].Rotation), 0, 30, Color.White);
 
+            skyBox.Render();
+
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
@@ -234,9 +249,9 @@ namespace TGC.Group.Model
                 //Box.BoundingBox.Render();
                 //Mesh.BoundingBox.Render();
         //SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
-        SceneEstrellaDeLaMuerte.BoundingBox.Render();
-        LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
-        RightWallEstrellaDeLaMuerte.BoundingBox.Render();
+        //SceneEstrellaDeLaMuerte.BoundingBox.Render();
+        //LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
+        //RightWallEstrellaDeLaMuerte.BoundingBox.Render();
 
 
 
@@ -260,6 +275,7 @@ namespace TGC.Group.Model
             this.SceneEstrellaDeLaMuerte.DisposeAll();
             this.LeftWallEstrellaDeLaMuerte.DisposeAll();
             this.RightWallEstrellaDeLaMuerte.DisposeAll();
+            skyBox.Dispose();
         }
 
         private void ActionOnScene(System.Action<TgcMesh> action)

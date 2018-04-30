@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.BoundingVolumes;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 
@@ -22,6 +23,11 @@ namespace TGC.Group
         public float speed = 1000f;
         private bool shouldBarrelRoll = false;
 
+        public TgcBoundingOrientedBox OOB
+        {
+            private set; get;
+        }
+
         public NaveEspacial(string MediaDir, string modelToUse)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
@@ -34,6 +40,20 @@ namespace TGC.Group
                 mesh.AutoTransform = false; //Desactivar el autotransform para poder usar el mesh.transform.
             });
         }
+
+        public void RefreshOOB()
+        {
+
+        }
+
+        public void CreateOOB()
+        {
+
+            this.OOB = TgcBoundingOrientedBox.computeFromAABB(Scene.BoundingBox);
+            this.OOB.move(this.MovementVector);
+            this.OOB.rotate(this.RotationVector);
+        }
+
 
         public TGCMatrix RotationMatrix()
         {
@@ -71,11 +91,13 @@ namespace TGC.Group
 
         public void Rotate(TGCVector3 rotation)
         {
+            this.OOB.rotate(new TGCVector3(rotation.Z, rotation.Y, -rotation.X));
             this.RotationVector = this.RotationVector + rotation;
         }
 
         public void Move(TGCVector3 newOffset)
         {
+            this.OOB.move(newOffset * speed);
             this.MovementVector = this.MovementVector + newOffset * speed;
         }
 
@@ -86,6 +108,7 @@ namespace TGC.Group
 
         public void Render(bool renderBoundingBox = false)
         {
+            this.OOB.Render();
             if(shouldBarrelRoll)
                 this.PerformBarrelRoll();
             this.ActionOnNave((mesh) => {
@@ -99,6 +122,13 @@ namespace TGC.Group
         public void ActionOnNave(System.Action<TgcMesh> action)
         {
             this.Scene.Meshes.ForEach(action);
+        }
+
+        public void UpdateBoundingBox()
+        {
+            this.ActionOnNave((mesh) => {
+                mesh.updateBoundingBox();
+            });
         }
     }
 }
