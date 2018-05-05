@@ -38,7 +38,7 @@ namespace TGC.Group.Model
 
         //Esto se debe mover a la clase de la estrella de la muerte
         private bool shouldMove = false;
-        private const float velocidadDisparo = -1f;
+        private const float velocidadDisparo = -30f;
         List<Disparo> disparos;
         //Scenes
         private NaveEspacial navePrincipal;
@@ -49,7 +49,6 @@ namespace TGC.Group.Model
         private TgcSkyBox skyBox;
 
 
-        private TGCVector3 movDisparo;
 
         private float movimientoZ = -2f;
 
@@ -329,7 +328,7 @@ namespace TGC.Group.Model
 
 
             // }
-            disparos.ForEach(disparo => { disparo.modelo.MoveOrientedY(velocidadDisparo); disparo.modelo.Render();});
+            disparos.ForEach(disparo => { disparo.modelo.MoveOrientedY(velocidadDisparo);});
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -352,12 +351,7 @@ namespace TGC.Group.Model
             skyBox.Dispose();
             for (int i = 0; i < disparos.Count; i++)
             {
-                if (disparos[i].tiempoDisparo > ElapsedTime)
-                {
                     disparos[i].modelo.Dispose();
-                    disparos.Remove(disparos[i]);
-                }
-
             }
         }
 
@@ -378,7 +372,7 @@ namespace TGC.Group.Model
             TGCBox modeloDisparo;
            // var texturaDisparo = TgcTexture.createTexture(MediaDir+"XWing\\Textures\\disparo_laser.jpg");
             var rojoDisparo = Color.Red;
-            modeloDisparo= TGCBox.fromSize(new TGCVector3(0.2f, 0.1f, 8f), rojoDisparo);
+            modeloDisparo= TGCBox.fromSize(new TGCVector3(0.4f, 0.3f, 8f), rojoDisparo);
             modeloDisparo.Position = nave.GetPosition();
             var disparo = new Disparo (modeloDisparo);
             return disparo;
