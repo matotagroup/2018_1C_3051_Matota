@@ -328,7 +328,7 @@ namespace TGC.Group.Model
 
 
             // }
-            disparos.ForEach(disparo => { disparo.modelo.MoveOrientedY(velocidadDisparo);});
+            disparos.ForEach(disparo => { disparo.modelo.MoveOrientedY(velocidadDisparo); disparo.modelo.Render()});
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
