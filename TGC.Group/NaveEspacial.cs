@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TGC.Core.BoundingVolumes;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Textures;
 
 namespace TGC.Group
 {
@@ -19,7 +20,7 @@ namespace TGC.Group
         public TGCMatrix ScaleFactor { get; set; }
         public TGCVector3 RotationVector { get; set; }
         public TGCVector3 MovementVector { get; set; }
-
+        public TGCVector3 VectorDerecho { get; set; }
         public float speed = 1000f;
         private bool shouldBarrelRoll = false;
 
@@ -35,6 +36,7 @@ namespace TGC.Group
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
             this.MovementVector = TGCVector3.Empty;
+            this.VectorDerecho = TGCVector3.Empty;
 
             this.ActionOnNave((mesh) => {
                 mesh.AutoTransform = false; //Desactivar el autotransform para poder usar el mesh.transform.
@@ -98,11 +100,20 @@ namespace TGC.Group
         {
             this.OOB.move(newOffset * speed);
             this.MovementVector = this.MovementVector + newOffset * speed;
+            this.VectorDerecho = this.VectorDerecho + newOffset * speed;
+            var anguloZ = FastMath.PI_HALF;
+            var matrizRot = TGCMatrix.RotationYawPitchRoll( 0, 0, anguloZ);
+            this.VectorDerecho.TransformCoordinate(matrizRot);
         }
 
         public TGCVector3 GetPosition()
         {
             return MovementVector;
+        }
+
+        public TGCVector3 GetPositionDerecho()
+        {
+            return this.VectorDerecho;
         }
 
         public void Render(bool renderBoundingBox = false)

@@ -11,6 +11,8 @@ using TGC.Core.Sound;
 using TGC.Core.Terrain;
 using Microsoft.DirectX;
 using TGC.Core.Collision;
+using System;
+using System.Collections.Generic;
 
 namespace TGC.Group.Model
 {
@@ -36,7 +38,8 @@ namespace TGC.Group.Model
 
         //Esto se debe mover a la clase de la estrella de la muerte
         private bool shouldMove = false;
-
+        private const float velocidadDisparo = -1f;
+        List<Disparo> disparos;
         //Scenes
         private NaveEspacial navePrincipal;
         private TgcScene SceneEstrellaDeLaMuerte { get; set; }
@@ -46,6 +49,7 @@ namespace TGC.Group.Model
         private TgcSkyBox skyBox;
 
 
+        private TGCVector3 movDisparo;
         //Sounds
         //private TgcMp3Player sonidoAmbiente;
         //private TgcMp3Player sonidoRotacion;
@@ -108,7 +112,6 @@ namespace TGC.Group.Model
                 mesh.AutoUpdateBoundingBox = true;
                 mesh.updateBoundingBox();
             });
-
             //Actualiza el bounding box!
             SceneEstrellaDeLaMuerte.BoundingBox.scaleTranslate(SceneEstrellaDeLaMuerte.Meshes[0].Position, new TGCVector3(50f, 200f, 80f));
 
@@ -151,6 +154,8 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
+
+            disparos = new List<Disparo>();
         }
 
         /// <summary>
@@ -161,7 +166,7 @@ namespace TGC.Group.Model
         public override void Update()
         {
             PreUpdate();
-            
+
             //Coidigo Ejemplo de como capturar teclas
             /*//Capturar Input teclado
             if (base.Input.keyPressed(Key.F))
@@ -172,7 +177,7 @@ namespace TGC.Group.Model
             var movimientoNave = TGCVector3.Empty;
 
             //Movernos de izquierda a derecha, sobre el eje X.
-            if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
+             if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
                 movimientoNave.X = 1;
             else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
                 movimientoNave.X = -1;
@@ -194,7 +199,11 @@ namespace TGC.Group.Model
             //TODO: Implementar cooldown?
             if (Input.keyDown(Key.Space))
                 this.navePrincipal.DoBarrelRoll();
-
+            if (Input.keyDown(Key.F))
+            {
+                Disparo disparo = disparar(navePrincipal);
+                disparos.Add(disparo);
+            }
 
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, SceneEstrellaDeLaMuerte.BoundingBox) && !shouldMove)
             {
@@ -217,6 +226,8 @@ namespace TGC.Group.Model
 
             PostUpdate();
         }
+
+
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
@@ -272,14 +283,14 @@ namespace TGC.Group.Model
             //Box.BoundingBox.Render();
             //Mesh.BoundingBox.Render();
             //SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
-            
-        SceneEstrellaDeLaMuerte.BoundingBox.Render();
-        //LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
-        //RightWallEstrellaDeLaMuerte.BoundingBox.Render();
+            SceneEstrellaDeLaMuerte.BoundingBox.Render();
+            //LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
+            //RightWallEstrellaDeLaMuerte.BoundingBox.Render();
 
 
 
-           // }
+            // }
+            disparos.ForEach(disparo => { disparo.modelo.MoveOrientedY(velocidadDisparo); disparo.modelo.Render();});
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -300,6 +311,15 @@ namespace TGC.Group.Model
             this.LeftWallEstrellaDeLaMuerte.DisposeAll();
             this.RightWallEstrellaDeLaMuerte.DisposeAll();
             skyBox.Dispose();
+            for (int i = 0; i < disparos.Count; i++)
+            {
+                if (disparos[i].tiempoDisparo > ElapsedTime)
+                {
+                    disparos[i].modelo.Dispose();
+                    disparos.Remove(disparos[i]);
+                }
+
+            }
         }
 
         private void ActionOnScene(System.Action<TgcMesh> action)
@@ -313,6 +333,16 @@ namespace TGC.Group.Model
         private void ActionOnSceneWallRight(System.Action<TgcMesh> action)
         {
             this.RightWallEstrellaDeLaMuerte.Meshes.ForEach(action);
+        }
+        private Disparo disparar(NaveEspacial nave)
+        {
+            TGCBox modeloDisparo;
+           // var texturaDisparo = TgcTexture.createTexture(MediaDir+"XWing\\Textures\\disparo_laser.jpg");
+            var rojoDisparo = Color.Red;
+            modeloDisparo= TGCBox.fromSize(new TGCVector3(0.2f, 0.1f, 8f), rojoDisparo);
+            modeloDisparo.Position = nave.GetPosition();
+            var disparo = new Disparo (modeloDisparo);
+            return disparo;
         }
     }
 }
