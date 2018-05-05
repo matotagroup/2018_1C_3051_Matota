@@ -23,6 +23,9 @@ namespace TGC.Group
         public TGCVector3 VectorDerecho { get; set; }
         public float speed = 1000f;
         private bool shouldBarrelRoll = false;
+        private bool shouldLeft90Spin = false;
+        private bool shouldRight90Spin = false;
+        private bool stopSpinning = false;
 
         public TgcBoundingOrientedBox OOB
         {
@@ -90,6 +93,73 @@ namespace TGC.Group
             this.shouldBarrelRoll = true;
         }
 
+        private void PerformLeft90Spin()
+        {
+
+            if (stopSpinning)
+            {
+                if (this.RotationVector.X < 0)
+                    this.Rotate(new TGCVector3(0.05f, 0, 0));
+                else
+                {
+                    this.shouldLeft90Spin = false;
+                    this.stopSpinning = false;
+                }
+            }
+            else
+            {
+                if (this.RotationVector.X < FastMath.PI_HALF)
+                    this.Rotate(new TGCVector3(0.05f, 0, 0));
+                else
+                {
+                    this.shouldLeft90Spin = false;
+                    this.shouldRight90Spin = true;
+                    this.stopSpinning = true;
+                }
+            }           
+        }
+
+        private void PerformRight90Spin()
+        {
+            if (stopSpinning)
+            {
+                if (this.RotationVector.X > 0)
+                    this.Rotate(new TGCVector3(-0.05f, 0, 0));
+                else
+                {
+                    this.shouldRight90Spin = false;
+                    this.stopSpinning = false;
+                }
+            }
+            else
+            {
+                if (this.RotationVector.X > -FastMath.PI_HALF)
+                {
+                    this.Rotate(new TGCVector3(-0.05f, 0, 0));
+                }
+                else
+                {
+                    this.shouldRight90Spin = false;
+                    this.shouldLeft90Spin = true;
+                    this.stopSpinning = true;
+                }
+            }
+        }
+
+        public void DoLeft90Spin()
+        {
+            this.shouldLeft90Spin = true;
+            this.shouldRight90Spin = false;
+            this.stopSpinning = false;
+        }
+
+        public void DoRight90Spin()
+        {
+            this.shouldRight90Spin = true;
+            this.shouldLeft90Spin = false;
+            this.stopSpinning = false;
+        }
+
         public void Rotate(TGCVector3 rotation)
         {
             this.OOB.rotate(new TGCVector3(rotation.Z, rotation.Y, -rotation.X));
@@ -119,8 +189,12 @@ namespace TGC.Group
         public void Render(bool renderBoundingBox = false)
         {
             this.OOB.Render();
-            if(shouldBarrelRoll)
+            if (shouldBarrelRoll)
                 this.PerformBarrelRoll();
+            else if (shouldLeft90Spin)
+                this.PerformLeft90Spin();
+            else if (shouldRight90Spin)
+                this.PerformRight90Spin();
             this.ActionOnNave((mesh) => {
                 mesh.Transform = TransformMatix;
                 mesh.Render();

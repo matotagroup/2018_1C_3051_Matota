@@ -50,6 +50,15 @@ namespace TGC.Group.Model
 
 
         private TGCVector3 movDisparo;
+
+        private float movimientoZ = -2f;
+
+        private float movimientoBaseZ = -2f;
+
+        private float movimientoMaximoZ=-20f;
+
+        private float factorMovimientoZ = 0.25f;
+
         //Sounds
         //private TgcMp3Player sonidoAmbiente;
         //private TgcMp3Player sonidoRotacion;
@@ -183,22 +192,52 @@ namespace TGC.Group.Model
                 movimientoNave.X = -1;
 
             //Movernos adelante y atras, sobre el eje Z.
-            if (Input.keyDown(Key.Up) || Input.keyDown(Key.W))
-                movimientoNave.Z = -1;
+            if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
+            {
+                if (movimientoZ < movimientoBaseZ)
+                {
+                    movimientoZ += factorMovimientoZ;
+                }
+                movimientoNave.Z = movimientoZ;
+            }
             else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
-                movimientoNave.Z = 5;
+            {
+               /* if(movimientoZ<=0)
+                movimientoZ -= movimientoBaseZ;
+                else*/
+                movimientoNave.Z = -movimientoBaseZ;
+            }
+
             //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
             if (Input.keyDown(Key.E))
                 movimientoNave.Y = 1;
             else if (Input.keyDown(Key.LeftControl))
                 movimientoNave.Y = -1;
+
             //boost de velocidad con shift
-            if (Input.keyDown(Key.LeftShift))
-                movimientoNave.Z = -5;
+            if (Input.keyDown(Key.LeftShift) && (Input.keyDown(Key.Up) || Input.keyDown(Key.W)))
+            {
+                if (movimientoZ > movimientoMaximoZ)
+                {
+                    movimientoZ -= factorMovimientoZ;
+                }
+
+                movimientoNave.Z = movimientoZ;
+            }
+
+
             //Activar BarrelRoll 
             //TODO: Implementar cooldown?
             if (Input.keyDown(Key.Space))
                 this.navePrincipal.DoBarrelRoll();
+
+            if (Input.keyDown(Key.Z))
+                this.navePrincipal.DoLeft90Spin();
+
+            if (Input.keyDown(Key.X))
+                this.navePrincipal.DoRight90Spin();
+
+            //Disparar
             if (Input.keyDown(Key.F))
             {
                 Disparo disparo = disparar(navePrincipal);
