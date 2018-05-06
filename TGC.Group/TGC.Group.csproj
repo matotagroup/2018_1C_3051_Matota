@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Camara.cs" />
     <Compile Include="Disparo.cs" />
+    <Compile Include="Escenario.cs" />
     <Compile Include="Form\GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
