@@ -37,20 +37,12 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-        //Esto se debe mover a la clase de la estrella de la muerte
-        private bool shouldMove = false;
-        
-        List<Disparo> disparos;
         //Scenes
         private NaveEspacial navePrincipal;
-        private TgcScene SceneEstrellaDeLaMuerte { get; set; }
-        private TgcScene LeftWallEstrellaDeLaMuerte { get; set; }
-        private TgcScene RightWallEstrellaDeLaMuerte { get; set; }
-
+        private List<Escenario> escenarios;
         private NaveEnemiga nave1;
 
         private TgcSkyBox skyBox;
-
 
 
         private float movimientoZ = -2f;
@@ -60,6 +52,11 @@ namespace TGC.Group.Model
         private float movimientoMaximoZ=-20f;
 
         private float factorMovimientoZ = 0.25f;
+
+        /// <summary>
+        /// Representa el scene donde actualmente esta el jugador.
+        /// </summary>
+        private Escenario currentScene;
 
         //Sounds
         //private TgcMp3Player sonidoAmbiente;
@@ -92,6 +89,9 @@ namespace TGC.Group.Model
                     D3DDevice.Instance.ZNearPlaneDistance,
                     D3DDevice.Instance.ZFarPlaneDistance * 1.8f);
 
+            this.escenarios = new List<Escenario>();
+           
+
             //Crear SkyBox
             skyBox = new TgcSkyBox();
             skyBox.Center = new TGCVector3(0, 0, -2300f);
@@ -113,49 +113,13 @@ namespace TGC.Group.Model
 
             this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,500f,-1000f),navePrincipal);
 
-            // IMPORTANTE: UBICAR LA CARPETA MEDIA EN 2018_1C_3051_Matota\TGC.Group
-            SceneEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star-TgcScene.xml", MediaDir + "XWing/");
-            LeftWallEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star-TgcScene.xml", MediaDir + "XWing/");
-            RightWallEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/m1-TgcScene.xml", MediaDir + "XWing/");
+            for(int i = 0; i < 3;i++)
+                escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
-            this.ActionOnScene((mesh) => {
-                mesh.AutoTransform = false;
-                mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF);
-                mesh.setColor(Color.Gray);
-                mesh.AutoUpdateBoundingBox = true;
-                mesh.updateBoundingBox();
-            });
-            //Actualiza el bounding box!
-            SceneEstrellaDeLaMuerte.BoundingBox.scaleTranslate(SceneEstrellaDeLaMuerte.Meshes[0].Position, new TGCVector3(50f, 200f, 80f));
-
-
-            this.ActionOnSceneWallLeft((mesh) =>{
-                mesh.AutoTransform = false;
-                mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF) * TGCMatrix.Translation(new TGCVector3(0,0,-8500f));
-                mesh.setColor(Color.Gray);
-                //es medio loco el valor que hay que ponerle al translate para que no se solapeen los mesh, no se entiende mucho de donde sale 8500, pero el tema es que
-                // el mesh ya de por si tiene un tamaño que no podemos acceder entonces aunque apliquemos la escala no tenemos el valor base como para aplicar esos offsets
-            });
-
-            this.ActionOnSceneWallRight((mesh) => {
-                mesh.Scale = new TGCVector3(100f, 100f, 100f);
-                mesh.RotateZ(FastMath.PI_HALF);
-                mesh.Position = new TGCVector3(2000f, 0, 0);
-            });
-            //La nave tiene mas de un Mesh, si se toma el primero hay parte que no se esta teniendo en cuenta y terminamos teniendo parte de la nave en vez de toda la nave.
+            currentScene = escenarios[0];
 
             this.navePrincipal.CreateOOB();
-
             this.nave1.CreateOOB();
-
-            
-            //Defino una escala en el modelo logico del mesh que es muy grande.
-            /*
-            Mesh.UpdateMeshTransform();
-            Mesh.Scale = new TGCVector3(0.5f, 0.5f, 0.5f);
-
-            Mesh.RotateY(1.5f);*/
-
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
@@ -169,8 +133,6 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
-
-            disparos = new List<Disparo>();
         }
 
         /// <summary>
@@ -249,23 +211,24 @@ namespace TGC.Group.Model
                 this.navePrincipal.Disparar();
             }
 
-            if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, SceneEstrellaDeLaMuerte.BoundingBox) && !shouldMove)
+            if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
-                shouldMove = true; //Esto es a modo de ejemplo, tendria que haber un bool por cada scene de estrella y una comprobacion por c/u de ellas tambien, usar abstraccion en una clase y tener una lista de scenes!
-                this.navePrincipal.OOB.setRenderColor(Color.Red);
-            }
-            //una vez movido setear a false para no volver a mover, cuando sea true de nuevo (no va a pasar en este caso)
+                int nextSceneIndex = escenarios.FindIndex(es => es == currentScene) + 1;
 
-            if (shouldMove)
-                this.ActionOnScene((mesh) => {
-                    mesh.Transform = TGCMatrix.Scaling(new TGCVector3(50f, 200f, 80f)) * TGCMatrix.RotationY(FastMath.PI_HALF) * TGCMatrix.Translation(new TGCVector3(0, 0, -17000f));
-                    //cada vez que se mueve el mesh entero hay que actualizar su bounding box
-                });
+                if (nextSceneIndex == escenarios.Count)
+                    nextSceneIndex = 0;
+
+                currentScene.MoveScene(escenarios.Count);
+                currentScene.MovementVector = currentScene.GetOffsetVectorMoved();
+                currentScene.UpdateBoundingBox();
+                currentScene = escenarios[nextSceneIndex];
+            }
 
             //Actualiza la matrix de movimiento de la nave.
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update();
-
+            this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
+            
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
             PostUpdate();
@@ -283,62 +246,26 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-            //DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.SceneNave.Meshes[0].Rotation), 0, 30, Color.White);
-
             skyBox.Render();
 
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
-            DrawText.drawText("disparos: " + Stopwatch.GetTimestamp(), 0, 85, Color.White);
-            /*Ejemplo de como renderesar
-             * 
-             * 
-            //Siempre antes de renderizar el modelo necesitamos actualizar la matriz de transformacion.
-            //Debemos recordar el orden en cual debemos multiplicar las matrices, en caso de tener modelos jerárquicos, tenemos control total.
-            Box.Transform = TGCMatrix.Scaling(Box.Scale) * TGCMatrix.RotationYawPitchRoll(Box.Rotation.Y, Box.Rotation.X, Box.Rotation.Z) * TGCMatrix.Translation(Box.Position);
-            //A modo ejemplo realizamos toda las multiplicaciones, pero aquí solo nos hacia falta la traslación.
-            //Finalmente invocamos al render de la caja
-            Box.Render();*/
-
-            this.SceneEstrellaDeLaMuerte.RenderAll();
-            this.LeftWallEstrellaDeLaMuerte.RenderAll();
-            //this.RightWallEstrellaDeLaMuerte.RenderAll();
-            //Cuando tenemos modelos mesh podemos utilizar un método que hace la matriz de transformación estándar.
-            //Es útil cuando tenemos transformaciones simples, pero OJO cuando tenemos transformaciones jerárquicas o complicadas.
-            /*Mesh.UpdateMeshTransform();
-            //Render del mesh
-            Mesh.Render();*/
 
 
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
+
+            this.escenarios.ForEach((es) => {
+                es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
+                es.Render();
+            });
+
 
             this.navePrincipal.Render();
 
             this.nave1.TransformMatix = nave1.ScaleFactor * nave1.RotationMatrix() * nave1.MovementMatrix();
 
             this.nave1.Render();
-
-            //this.ActionOnNave((mesh) => {
-            //    mesh.Transform = mesh.Transform;
-            //    mesh.Transform = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f) * TGCMatrix.RotationY(FastMath.PI_HALF);
-            //    mesh.Render();
-            //});
-            //this.SceneNave.RenderAll();
-
-            //Render de BoundingBox, muy útil para debug de colisiones.
-            // if (BoundingBox)
-            //{
-            //Box.BoundingBox.Render();
-            //Mesh.BoundingBox.Render();
-            //SceneNave.BoundingBox.Render(); // El bounding box del mesh entero es extremadamente grande, y va a detectar colision cuando no la hay.
-            SceneEstrellaDeLaMuerte.BoundingBox.Render();
-            //LeftWallEstrellaDeLaMuerte.BoundingBox.Render();
-            //RightWallEstrellaDeLaMuerte.BoundingBox.Render();
-
-
-
-            // }
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -351,33 +278,10 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Dispose()
         {
-            //Dispose de la caja.
-            //Box.Dispose();
-            //Dispose del mesh.
             this.navePrincipal.Scene.DisposeAll();
             this.nave1.Scene.DisposeAll();
-            this.SceneEstrellaDeLaMuerte.DisposeAll();
-            this.LeftWallEstrellaDeLaMuerte.DisposeAll();
-            this.RightWallEstrellaDeLaMuerte.DisposeAll();
+            this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
-            for (int i = 0; i < disparos.Count; i++)
-            {
-                   // disparos[i].modelo.Dispose();
-            }
-            
-        }
-
-        private void ActionOnScene(System.Action<TgcMesh> action)
-        {
-            this.SceneEstrellaDeLaMuerte.Meshes.ForEach(action);
-        }
-        private void ActionOnSceneWallLeft(System.Action<TgcMesh> action)
-        {
-            this.LeftWallEstrellaDeLaMuerte.Meshes.ForEach(action);
-        }
-        private void ActionOnSceneWallRight(System.Action<TgcMesh> action)
-        {
-            this.RightWallEstrellaDeLaMuerte.Meshes.ForEach(action);
         }
     }
 }

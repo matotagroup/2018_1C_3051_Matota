@@ -78,6 +78,7 @@
     <Compile Include="Arma.cs" />
     <Compile Include="NaveEnemiga.cs" />
     <Compile Include="Disparo.cs" />
+    <Compile Include="Escenario.cs" />
     <Compile Include="Form\GameForm.cs">
       <SubType>Form</SubType>
     </Compile>
