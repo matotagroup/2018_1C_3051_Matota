@@ -25,7 +25,7 @@ namespace TGC.Group
         private bool shouldLeft90Spin = false;
         private bool shouldRight90Spin = false;
         private bool stopSpinning = false;
-        private List<Disparo> disparos;
+        private Arma arma;
 
         public TgcBoundingOrientedBox OOB
         {
@@ -35,7 +35,7 @@ namespace TGC.Group
         public NaveEspacial(string MediaDir, string modelToUse)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
-            this.disparos = new List<Disparo>();
+            this.arma = new Arma();
             this.TransformMatix = TGCMatrix.Identity;
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
@@ -49,7 +49,7 @@ namespace TGC.Group
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar()
         {
-            this.disparos.Add(new Disparo(this.MovementVector));
+            this.arma.Disparar(this.MovementVector);
         }
 
         public void CreateOOB()
@@ -180,10 +180,7 @@ namespace TGC.Group
 
         public void Update()
         {
-
-            //hay que hacer un for feo para no dar tanta vuelta con el tema de la modificacion de la lista en tiempo de ejecucion
-            for (var x = 0; x < disparos.Count; x++)
-                disparos[x].Live(this.disparos);
+            this.arma.Update();
         }
 
         public void Render(bool renderBoundingBox = false)
@@ -198,13 +195,11 @@ namespace TGC.Group
             this.ActionOnNave((mesh) => {
                 mesh.Transform = TransformMatix;
                 mesh.Render();
-                if (renderBoundingBox)
-                    mesh.BoundingBox.Render();
+                //if (renderBoundingBox)
+                //    mesh.BoundingBox.Render();
             });
 
-            this.disparos.ForEach((disparo) => {
-                disparo.Render();
-            });
+            this.arma.Render();
         }
 
         public void ActionOnNave(System.Action<TgcMesh> action)

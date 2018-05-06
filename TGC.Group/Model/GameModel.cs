@@ -47,6 +47,8 @@ namespace TGC.Group.Model
         private TgcScene LeftWallEstrellaDeLaMuerte { get; set; }
         private TgcScene RightWallEstrellaDeLaMuerte { get; set; }
 
+        private NaveEnemiga nave1;
+
         private TgcSkyBox skyBox;
 
 
@@ -107,7 +109,9 @@ namespace TGC.Group.Model
             this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml");
             this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
-            this.navePrincipal.MovementVector = new TGCVector3(1200, -1100f, 4000f);
+            this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
+
+            this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,500f,-1000f),navePrincipal);
 
             // IMPORTANTE: UBICAR LA CARPETA MEDIA EN 2018_1C_3051_Matota\TGC.Group
             SceneEstrellaDeLaMuerte = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/death+star-TgcScene.xml", MediaDir + "XWing/");
@@ -141,6 +145,8 @@ namespace TGC.Group.Model
             //La nave tiene mas de un Mesh, si se toma el primero hay parte que no se esta teniendo en cuenta y terminamos teniendo parte de la nave en vez de toda la nave.
 
             this.navePrincipal.CreateOOB();
+
+            this.nave1.CreateOOB();
 
             
             //Defino una escala en el modelo logico del mesh que es muy grande.
@@ -240,8 +246,6 @@ namespace TGC.Group.Model
             //Disparar
             if (Input.keyDown(Key.F))
             {
-                /*Disparo disparo = disparar(navePrincipal);
-                disparos.Add(disparo);*/
                 this.navePrincipal.Disparar();
             }
 
@@ -311,6 +315,10 @@ namespace TGC.Group.Model
 
             this.navePrincipal.Render();
 
+            this.nave1.TransformMatix = nave1.ScaleFactor * nave1.RotationMatrix() * nave1.MovementMatrix();
+
+            this.nave1.Render();
+
             //this.ActionOnNave((mesh) => {
             //    mesh.Transform = mesh.Transform;
             //    mesh.Transform = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f) * TGCMatrix.RotationY(FastMath.PI_HALF);
@@ -347,6 +355,7 @@ namespace TGC.Group.Model
             //Box.Dispose();
             //Dispose del mesh.
             this.navePrincipal.Scene.DisposeAll();
+            this.nave1.Scene.DisposeAll();
             this.SceneEstrellaDeLaMuerte.DisposeAll();
             this.LeftWallEstrellaDeLaMuerte.DisposeAll();
             this.RightWallEstrellaDeLaMuerte.DisposeAll();
