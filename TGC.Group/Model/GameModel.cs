@@ -13,6 +13,7 @@ using Microsoft.DirectX;
 using TGC.Core.Collision;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace TGC.Group.Model
 {
@@ -38,7 +39,7 @@ namespace TGC.Group.Model
 
         //Esto se debe mover a la clase de la estrella de la muerte
         private bool shouldMove = false;
-        private const float velocidadDisparo = -30f;
+        
         List<Disparo> disparos;
         //Scenes
         private NaveEspacial navePrincipal;
@@ -239,8 +240,9 @@ namespace TGC.Group.Model
             //Disparar
             if (Input.keyDown(Key.F))
             {
-                Disparo disparo = disparar(navePrincipal);
-                disparos.Add(disparo);
+                /*Disparo disparo = disparar(navePrincipal);
+                disparos.Add(disparo);*/
+                this.navePrincipal.Disparar();
             }
 
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, SceneEstrellaDeLaMuerte.BoundingBox) && !shouldMove)
@@ -258,7 +260,7 @@ namespace TGC.Group.Model
 
             //Actualiza la matrix de movimiento de la nave.
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
-
+            this.navePrincipal.Update();
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
@@ -284,6 +286,7 @@ namespace TGC.Group.Model
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
+            DrawText.drawText("disparos: " + Stopwatch.GetTimestamp(), 0, 85, Color.White);
             /*Ejemplo de como renderesar
              * 
              * 
@@ -328,7 +331,6 @@ namespace TGC.Group.Model
 
 
             // }
-            disparos.ForEach(disparo => { disparo.modelo.MoveOrientedY(velocidadDisparo); disparo.modelo.Render()});
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -351,8 +353,9 @@ namespace TGC.Group.Model
             skyBox.Dispose();
             for (int i = 0; i < disparos.Count; i++)
             {
-                    disparos[i].modelo.Dispose();
+                   // disparos[i].modelo.Dispose();
             }
+            
         }
 
         private void ActionOnScene(System.Action<TgcMesh> action)
@@ -366,16 +369,6 @@ namespace TGC.Group.Model
         private void ActionOnSceneWallRight(System.Action<TgcMesh> action)
         {
             this.RightWallEstrellaDeLaMuerte.Meshes.ForEach(action);
-        }
-        private Disparo disparar(NaveEspacial nave)
-        {
-            TGCBox modeloDisparo;
-           // var texturaDisparo = TgcTexture.createTexture(MediaDir+"XWing\\Textures\\disparo_laser.jpg");
-            var rojoDisparo = Color.Red;
-            modeloDisparo= TGCBox.fromSize(new TGCVector3(0.4f, 0.3f, 8f), rojoDisparo);
-            modeloDisparo.Position = nave.GetPosition();
-            var disparo = new Disparo (modeloDisparo);
-            return disparo;
         }
     }
 }
