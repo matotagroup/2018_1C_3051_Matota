@@ -20,9 +20,10 @@ namespace TGC.Group
         public TGCVector3 MovementVector { get; set; }
 
         public int SceneNumber { get; private set; } = 0;
-
+        public List<Torre> torres;
         public static readonly TGCVector3 offsetEscenarios = new TGCVector3(0, 0, -8000f);
         public static readonly TGCVector3 defaultScale = new TGCVector3(50f, 200f, 80f);
+        
 
         public TGCVector3 GetOffsetVectorMoved()
         {
@@ -43,13 +44,18 @@ namespace TGC.Group
         {
             SceneNumber += timesToMove;
         }
+        public void generarTorre(string MediaDir)
+        {   
+            var torre = new Torre(MediaDir, posicionesTorres);
+            torres.Add(torre);
+        } 
 
-        private static List<TGCVector4> torres = new List<TGCVector4> {
+        private static List<TGCVector4> posicionesTorres = new List<TGCVector4> {
             new TGCVector4(711.83f, -1100, 4000, 0),
             new TGCVector4(1799.243f,-946.1815f,1775.645f, 0),
             new TGCVector4(662.0941f, -1126.118f, -371.27f, 0),
         };
-
+         
         public Escenario(string MediaDir, string modelToUse)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir  + modelToUse, MediaDir + "XWing/");
@@ -59,7 +65,9 @@ namespace TGC.Group
             this.MovementVector = TGCVector3.Empty;
             this.ForEachMesh((mesh) => {
                 mesh.AutoTransform = false; 
+               
             });
+            this.torres = new List<Torre>();
         }
 
         public Escenario(string MediaDir, string modelToUse, int sceneNumber) : this(MediaDir, modelToUse)
@@ -80,6 +88,9 @@ namespace TGC.Group
                 if (renderBoundingBox)
                     mesh.BoundingBox.Render();
             });
+                this.torres.ForEach(torre => torre.Render());
+           
+            
         }
 
         public TGCMatrix RotationMatrix()
@@ -105,6 +116,7 @@ namespace TGC.Group
         public void Dispose()
         {
             this.ForEachMesh(mesh => { mesh.Dispose(); });
+            this.torres.ForEach(torre => torre.Dispose());
         }
     }
 }

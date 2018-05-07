@@ -18,7 +18,7 @@ namespace TGC.Group
         private Stopwatch vida = null;
         public bool ShouldDie { get; private set; }
 
-        private const float velocidadDisparo = -3f;
+        private const float velocidadDisparo = -50f;
 
 
         public Disparo(TGCVector3 startPosition)

@@ -53,6 +53,8 @@ namespace TGC.Group.Model
 
         private float factorMovimientoZ = 0.25f;
 
+        public Torre torreta;
+
         /// <summary>
         /// Representa el scene donde actualmente esta el jugador.
         /// </summary>
@@ -91,7 +93,6 @@ namespace TGC.Group.Model
 
             this.escenarios = new List<Escenario>();
            
-
             //Crear SkyBox
             skyBox = new TgcSkyBox();
             skyBox.Center = new TGCVector3(0, 0, -2300f);
@@ -117,6 +118,9 @@ namespace TGC.Group.Model
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
             currentScene = escenarios[0];
+
+            currentScene.generarTorre(MediaDir);
+           // escenarios.ForEach(escenario => escenario.generarTorre(MediaDir));
 
             this.navePrincipal.CreateOOB();
             this.nave1.CreateOOB();
@@ -222,6 +226,7 @@ namespace TGC.Group.Model
                 currentScene.MovementVector = currentScene.GetOffsetVectorMoved();
                 currentScene.UpdateBoundingBox();
                 currentScene = escenarios[nextSceneIndex];
+              
             }
 
             //Actualiza la matrix de movimiento de la nave.
@@ -260,7 +265,7 @@ namespace TGC.Group.Model
                 es.Render();
             });
 
-
+         
             this.navePrincipal.Render();
 
             this.nave1.TransformMatix = nave1.ScaleFactor * nave1.RotationMatrix() * nave1.MovementMatrix();
