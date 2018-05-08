@@ -111,7 +111,7 @@ namespace TGC.Group.Model
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
 
-            this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,500f,-1000f),navePrincipal);
+            this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,0,-200f),navePrincipal,250f);
 
             for(int i = 0; i < 3;i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
@@ -227,6 +227,11 @@ namespace TGC.Group.Model
             //Actualiza la matrix de movimiento de la nave.
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update();
+
+            this.nave1.perseguir(ElapsedTime);
+            this.nave1.Update();
+            if (Input.keyDown(Key.H))
+                nave1.Move(new TGCVector3(-0.1f,0,-0.1f));
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
             
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
