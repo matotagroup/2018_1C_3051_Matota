@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.BoundingVolumes;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 
@@ -31,7 +32,12 @@ namespace TGC.Group
             new TGCVector4(662.0941f, -1126.118f, -371.27f, 0),
             new TGCVector4(-1351,-1100,2112, 0),
         };
-
+        private static readonly Dictionary<TgcBoundingAxisAlignBox, TGCVector3> boundingBoxes = new Dictionary<TgcBoundingAxisAlignBox, TGCVector3>
+        {
+            { new TgcBoundingAxisAlignBox(new TGCVector3(0,-2770.372f,-4000), new TGCVector3(4208.421f,0,4000)) , new TGCVector3(1500,-1000,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-700,-2770.372f,-4000), new TGCVector3(4208.421f,0,4000)) , new TGCVector3(-3300,-1200,0) }
+        };
+ 
         public static Escenario GenerarEscenarioDefault(string MediaDir, int numeroDeEscenario)
         {
             Escenario e = new Escenario(MediaDir, "XWing/death+star-TgcScene.xml", numeroDeEscenario);
@@ -109,6 +115,13 @@ namespace TGC.Group
                     mesh.BoundingBox.Render();
             });
                 this.torres.ForEach(torre => torre.Render());
+
+            foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
+            {
+                entry.Key.scaleTranslate(entry.Value + this.GetOffsetVectorMoved(), TGCVector3.One);
+                entry.Key.Render();
+            }
+
         }
 
         public TGCMatrix RotationMatrix()
