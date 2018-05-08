@@ -114,12 +114,11 @@ namespace TGC.Group.Model
 
             this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,500f,-1000f),navePrincipal);
 
-            for(int i = 0; i < 3;i++)
+            for(int i = 0; i < 1;i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
             currentScene = escenarios[0];
-
-            currentScene.generarTorre(MediaDir);
+            
            // escenarios.ForEach(escenario => escenario.generarTorre(MediaDir));
 
             this.navePrincipal.CreateOOB();
@@ -226,7 +225,6 @@ namespace TGC.Group.Model
                 currentScene.MovementVector = currentScene.GetOffsetVectorMoved();
                 currentScene.UpdateBoundingBox();
                 currentScene = escenarios[nextSceneIndex];
-              
             }
 
             //Actualiza la matrix de movimiento de la nave.
@@ -251,11 +249,13 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-            skyBox.Render();
+            //skyBox.Render();
 
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
+            DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.MovementVector), 0, 85, Color.White);
+
 
 
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
