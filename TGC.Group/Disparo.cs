@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.Textures;
@@ -19,7 +20,7 @@ namespace TGC.Group
         public bool ShouldDie { get; private set; }
         private TGCVector3 MovementDirection;
 
-        private const float velocidadDisparo = -10f;
+        private const float velocidadDisparo = -5f;
 
 
         public Disparo(TGCVector3 startPosition,TGCVector3 targetPosition,TGCVector3 size, Color color)
@@ -30,6 +31,8 @@ namespace TGC.Group
             modelo.AutoTransform = true;
             modelo.Position = startPosition;
             MovementDirection = targetPosition;
+
+            //MovementDirection = targetPosition - startPosition;
         }
 
         public void Live(List<Disparo> disparos)
@@ -44,8 +47,14 @@ namespace TGC.Group
             modelo.Move(MovementDirection*velocidadDisparo);
         }
 
+        public bool HayColision(NaveEspacial nave)
+        {
+            return TgcCollisionUtils.testObbAABB(nave.OOB, this.modelo.BoundingBox);
+        }
+
         public void Render()
         {
+            modelo.BoundingBox.Render();
             if(!ShouldDie)
                 this.modelo.Render();
         }

@@ -69,6 +69,8 @@ public class Torre
             mesh.Transform = TGCMatrix.Scaling(ScaleFactor) * TGCMatrix.RotationYawPitchRoll(rotacion.Y, rotacion.X, rotacion.Z) * TGCMatrix.Translation(posicion);
             mesh.Render();
         });
+        this.Scene.BoundingBox.transform(Scene.Meshes[0].Transform);
+        this.Scene.BoundingBox.Render();
         this.arma.Render();
     }
     public void Dispose()

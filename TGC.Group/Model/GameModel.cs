@@ -234,8 +234,12 @@ namespace TGC.Group.Model
                 this.navePrincipal.Disparar();
                 
             }
+
+            navePrincipal.Update(ElapsedTime);
+
             var torretasEnRango = currentScene.torresEnRango(navePrincipal.GetPosition());
-            torretasEnRango.ForEach(torre => { torre.disparar(new TGCVector3(0f,0f,1f)); torre.Update(); });
+
+            //torretasEnRango.ForEach(torre => { torre.disparar(new TGCVector3(0f,0f,1f)); torre.Update(); });
             
              
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
@@ -250,6 +254,14 @@ namespace TGC.Group.Model
                 currentScene.UpdateBoundingBox();
                 currentScene = escenarios[nextSceneIndex];
             }
+
+            if (currentScene.CheckCollision(navePrincipal))
+                navePrincipal.OOB.setRenderColor(Color.Red);
+            else
+                navePrincipal.OOB.setRenderColor(Color.Green);
+
+            if (navePrincipal.CheckIfMyShotsCollided(nave1))
+                nave1.Scene.BoundingBox.setRenderColor(Color.Red);
 
             //Actualiza la matrix de movimiento de la nave.
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
@@ -276,7 +288,7 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-            //skyBox.Render();
+            skyBox.Render();
 
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);

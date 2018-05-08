@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.Textures;
@@ -17,19 +18,30 @@ namespace TGC.Group
         private List<Disparo> disparos;
         private TGCVector3 shotSize;
         private Color shotColor;
+        private Stopwatch shotLimiter;
 
         public Arma(TGCVector3 tamanioDisparo, Color colorDisparo)
         {
             this.shotSize = tamanioDisparo;
             this.shotColor = colorDisparo;
             this.disparos = new List<Disparo>();
+            shotLimiter = Stopwatch.StartNew();
         }
         
 
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar(TGCVector3 startPosition,TGCVector3 targetPosition)
         {
-            this.disparos.Add(new Disparo(startPosition,targetPosition,shotSize,shotColor));
+            if(shotLimiter.ElapsedMilliseconds > 250)
+            {
+                this.disparos.Add(new Disparo(startPosition,targetPosition,shotSize,shotColor));
+                shotLimiter.Restart();
+            }
+        }
+
+        public bool CheckShots(NaveEspacial nave)
+        {
+            return disparos.FindAll(t => t.HayColision(nave)).Count > 0;
         }
 
         public void Update()
