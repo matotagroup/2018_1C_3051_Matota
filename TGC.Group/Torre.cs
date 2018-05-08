@@ -16,7 +16,7 @@ public class Torre
     public TGCVector3 rotacion;
 
     private Arma arma;
-    private TGCVector3 turretShotSize = new TGCVector3(3f, 3f, -8f);
+    private TGCVector3 turretShotSize = new TGCVector3(1.5f, 1.5f, 8f);
     private float rangoMaximo = 5000f;
 
     public static readonly List<string> modelosDisponibles = new List<string> {

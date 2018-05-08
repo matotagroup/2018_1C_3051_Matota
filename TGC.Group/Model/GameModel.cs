@@ -216,7 +216,7 @@ namespace TGC.Group.Model
 
             var torretasEnRango = currentScene.torresEnRango(navePrincipal.GetPosition());
 
-            //torretasEnRango.ForEach(torre => { torre.disparar(new TGCVector3(0f,0f,1f)); torre.Update(); });
+            torretasEnRango.ForEach(torre => { torre.disparar(navePrincipal.GetPosition()); torre.Update(); });
             
              
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))

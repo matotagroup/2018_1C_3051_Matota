@@ -51,7 +51,12 @@ namespace TGC.Group
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar()
         {
-            this.arma.Disparar(this.MovementVector,new TGCVector3(0f,0f,1f));
+            this.arma.Disparar(this.MovementVector,this.MovementVector-new TGCVector3(0f,0f,1f));
+        }
+
+        public void Disparar(TGCVector3 target)
+        {
+            this.arma.Disparar(this.MovementVector,target);
         }
 
         public void CreateOOB()
@@ -88,7 +93,7 @@ namespace TGC.Group
             else
             {
                 this.Rotate(new TGCVector3(-this.RotationVector.X, 0, 0), false);
-                this.OOB.setRotation(TGCVector3.Empty);
+                this.OOB.setRotation(new TGCVector3(0,FastMath.PI_HALF,0));
                 this.shouldBarrelRoll = false;
             }
             
@@ -99,15 +104,17 @@ namespace TGC.Group
             this.shouldBarrelRoll = true;
         }
 
-        private void PerformLeft90Spin()
+        private void PerformLeft90Spin(float ElapsedTime)
         {
 
             if (stopSpinning)
             {
                 if (this.RotationVector.X < 0)
-                    this.Rotate(new TGCVector3(0.05f, 0, 0));
+                    this.Rotate(new TGCVector3(FastMath.ToRad(250*ElapsedTime), 0, 0));
                 else
                 {
+                    this.Rotate(new TGCVector3(-this.RotationVector.X, 0, 0), false);
+                    this.OOB.setRotation(new TGCVector3(-this.RotationVector.X, FastMath.PI_HALF, 0));
                     this.shouldLeft90Spin = false;
                     this.stopSpinning = false;
                 }
@@ -115,9 +122,11 @@ namespace TGC.Group
             else
             {
                 if (this.RotationVector.X < FastMath.PI_HALF)
-                    this.Rotate(new TGCVector3(0.05f, 0, 0));
+                    this.Rotate(new TGCVector3(FastMath.ToRad(250 *ElapsedTime), 0, 0));
                 else
                 {
+                    this.Rotate(new TGCVector3(-this.RotationVector.X + FastMath.PI_HALF, 0, 0), false);
+                    this.OOB.setRotation(new TGCVector3(FastMath.PI_HALF, FastMath.PI_HALF, 0));
                     this.shouldLeft90Spin = false;
                     this.shouldRight90Spin = true;
                     this.stopSpinning = true;
@@ -125,14 +134,16 @@ namespace TGC.Group
             }           
         }
 
-        private void PerformRight90Spin()
+        private void PerformRight90Spin(float ElapsedTime)
         {
             if (stopSpinning)
             {
                 if (this.RotationVector.X > 0)
-                    this.Rotate(new TGCVector3(-0.05f, 0, 0));
+                    this.Rotate(new TGCVector3(FastMath.ToRad(-250*ElapsedTime), 0, 0));
                 else
                 {
+                    this.Rotate(new TGCVector3(-this.RotationVector.X, 0, 0), false);
+                    this.OOB.setRotation(new TGCVector3(-this.RotationVector.X, FastMath.PI_HALF, 0));
                     this.shouldRight90Spin = false;
                     this.stopSpinning = false;
                 }
@@ -141,10 +152,12 @@ namespace TGC.Group
             {
                 if (this.RotationVector.X > -FastMath.PI_HALF)
                 {
-                    this.Rotate(new TGCVector3(-0.05f, 0, 0));
+                    this.Rotate(new TGCVector3(FastMath.ToRad(-250*ElapsedTime), 0, 0));
                 }
                 else
                 {
+                    this.Rotate(new TGCVector3(-this.RotationVector.X - FastMath.PI_HALF, 0, 0), false);
+                    this.OOB.setRotation(new TGCVector3(-FastMath.PI_HALF, FastMath.PI_HALF, 0));
                     this.shouldRight90Spin = false;
                     this.shouldLeft90Spin = true;
                     this.stopSpinning = true;
@@ -198,10 +211,10 @@ namespace TGC.Group
         {
             if (shouldBarrelRoll)
                 this.PerformBarrelRoll(ElapsedTime);
-            /*else if (shouldLeft90Spin)
+            else if (shouldLeft90Spin)
                 this.PerformLeft90Spin(ElapsedTime);
             else if (shouldRight90Spin)
-                this.PerformRight90Spin(ElapsedTime);*/
+                this.PerformRight90Spin(ElapsedTime);
         }
 
         public void Render(bool renderBoundingBox = false)

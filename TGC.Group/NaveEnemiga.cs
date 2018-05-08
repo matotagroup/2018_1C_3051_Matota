@@ -75,7 +75,7 @@ namespace TGC.Group
                 this.estaListoParaAtacar = true;
             }
             else if(estaAlineado())
-                Disparar();
+                Disparar(naveAPerseguir.GetPosition());
             //if (estaLejos())
             //{
             //    movimiento = TGCVector3.Empty;
