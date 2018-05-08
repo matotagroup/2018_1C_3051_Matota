@@ -52,6 +52,9 @@
   <PropertyGroup>
     <StartupObject>TGC.Group.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Death-Star-icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
       <SpecificVersion>False</SpecificVersion>
@@ -436,6 +439,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Death-Star-icon.ico" />
     <Content Include="Media\4toPiso\Extract\4toPiso-TgcScene.xml" />
     <Content Include="Media\4toPiso\Extract\4toPiso_Portales.xml" />
     <Content Include="Media\4toPiso\Extract\Atmosphere\Sky\Back.jpg" />
