@@ -11,7 +11,7 @@ using TGC.Core.Textures;
 
 namespace TGC.Group
 {
-    class NaveEspacial
+    public class NaveEspacial
     {
 
         public TgcScene Scene { get; set; }
@@ -71,7 +71,7 @@ namespace TGC.Group
         {
             return TGCMatrix.Translation(MovementVector);
         }
-        private void PerformBarrelRoll()
+        private void PerformBarrelRoll(float ElapsedTime)
         {
             /*TGCVector3 origPosition = new TGCVector3(1, 0, 0);
 
@@ -82,13 +82,16 @@ namespace TGC.Group
             float mm = TGCVector3.Dot(this.RotationVector, origPosition);
             if (FastMath.Acos(mm) < FastMath.TWO_PI)*/
 
+           
             if (this.RotationVector.X > -FastMath.TWO_PI)
-                this.Rotate(new TGCVector3(-0.05f, 0, 0));
+                this.Rotate(new TGCVector3( FastMath.ToRad(-500 * ElapsedTime), 0, 0));
             else
             {
-                this.Rotate(new TGCVector3(-this.RotationVector.X,0,0));
+                this.Rotate(new TGCVector3(-this.RotationVector.X, 0, 0), false);
+                this.OOB.setRotation(TGCVector3.Empty);
                 this.shouldBarrelRoll = false;
             }
+            
         }
 
         public void DoBarrelRoll()
@@ -163,9 +166,10 @@ namespace TGC.Group
             this.stopSpinning = false;
         }
 
-        public void Rotate(TGCVector3 rotation)
+        public void Rotate(TGCVector3 rotation, bool updateOOB = true)
         {
-            this.OOB.rotate(new TGCVector3(rotation.Z, rotation.Y, -rotation.X));
+            if(updateOOB)
+                this.OOB.rotate(new TGCVector3(rotation.Z, rotation.Y, -rotation.X));
             this.RotationVector = this.RotationVector + rotation;
         }
 
@@ -185,15 +189,25 @@ namespace TGC.Group
             this.arma.Update();
         }
 
+        public bool CheckIfMyShotsCollided(NaveEspacial otraNave)
+        {
+            return this.arma.CheckShots(otraNave);
+        }
+
+        public void Update(float ElapsedTime)
+        {
+            if (shouldBarrelRoll)
+                this.PerformBarrelRoll(ElapsedTime);
+            /*else if (shouldLeft90Spin)
+                this.PerformLeft90Spin(ElapsedTime);
+            else if (shouldRight90Spin)
+                this.PerformRight90Spin(ElapsedTime);*/
+        }
+
         public void Render(bool renderBoundingBox = false)
         {
             this.OOB.Render();
-            if (shouldBarrelRoll)
-                this.PerformBarrelRoll();
-            else if (shouldLeft90Spin)
-                this.PerformLeft90Spin();
-            else if (shouldRight90Spin)
-                this.PerformRight90Spin();
+            
             this.ActionOnNave((mesh) => {
                 mesh.Transform = TransformMatix;
                 mesh.Render();
