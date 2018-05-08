@@ -39,7 +39,7 @@ namespace TGC.Group
             e.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             e.MovementVector = e.GetOffsetVectorMoved();
             e.UpdateBoundingBox();
-            e.generarTorres(MediaDir, 3);
+            e.generarTorres(MediaDir, 2);
             return e;
         }
 
@@ -93,6 +93,11 @@ namespace TGC.Group
         public void UpdateBoundingBox()
         {
             this.Scene.BoundingBox.scaleTranslate(this.MovementVector, defaultScale);
+        }
+
+        public List<Torre> torresEnRango(TGCVector3 targetPosition)
+        {
+            return torres.FindAll(torre => torre.enRango(targetPosition));
         }
 
         public void Render(bool renderBoundingBox = false)

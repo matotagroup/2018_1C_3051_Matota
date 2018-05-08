@@ -15,17 +15,21 @@ namespace TGC.Group
     class Arma
     {
         private List<Disparo> disparos;
+        private TGCVector3 shotSize;
+        private Color shotColor;
 
-        public Arma()
+        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo)
         {
+            this.shotSize = tamanioDisparo;
+            this.shotColor = colorDisparo;
             this.disparos = new List<Disparo>();
         }
         
 
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
-        public void Disparar(TGCVector3 startPosition)
+        public void Disparar(TGCVector3 startPosition,TGCVector3 targetPosition)
         {
-            this.disparos.Add(new Disparo(startPosition));
+            this.disparos.Add(new Disparo(startPosition,targetPosition,shotSize,shotColor));
         }
 
         public void Update()
