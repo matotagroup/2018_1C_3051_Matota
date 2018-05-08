@@ -53,6 +53,8 @@ namespace TGC.Group.Model
 
         private float factorMovimientoZ = 0.25f;
 
+        public Torre torreta;
+
         /// <summary>
         /// Representa el scene donde actualmente esta el jugador.
         /// </summary>
@@ -90,8 +92,6 @@ namespace TGC.Group.Model
                     D3DDevice.Instance.ZFarPlaneDistance * 1.8f);
 
             this.escenarios = new List<Escenario>();
-           
-
             //Crear SkyBox
             skyBox = new TgcSkyBox();
             skyBox.Center = new TGCVector3(0, 0, -2300f);
@@ -116,6 +116,7 @@ namespace TGC.Group.Model
             for(int i = 0; i < 3;i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
+            //escenarios.ForEach(es => es.generarTorre(MediaDir));
             currentScene = escenarios[0];
 
             this.navePrincipal.CreateOOB();
@@ -154,7 +155,7 @@ namespace TGC.Group.Model
             var movimientoNave = TGCVector3.Empty;
 
             //Movernos de izquierda a derecha, sobre el eje X.
-             if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
+            if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
                 movimientoNave.X = 1;
             else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
                 movimientoNave.X = -1;
@@ -170,9 +171,9 @@ namespace TGC.Group.Model
             }
             else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
             {
-               /* if(movimientoZ<=0)
-                movimientoZ -= movimientoBaseZ;
-                else*/
+                /* if(movimientoZ<=0)
+                 movimientoZ -= movimientoBaseZ;
+                 else*/
                 movimientoNave.Z = -movimientoBaseZ;
             }
 
@@ -210,7 +211,10 @@ namespace TGC.Group.Model
             {
                 this.navePrincipal.Disparar();
             }
-
+            var torretasEnRango = currentScene.torresEnRango(navePrincipal.GetPosition());
+            torretasEnRango.ForEach(torre => { torre.disparar(new TGCVector3(0f,0f,1f)); torre.Update(); });
+            
+             
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
                 int nextSceneIndex = escenarios.FindIndex(es => es == currentScene) + 1;
@@ -239,8 +243,6 @@ namespace TGC.Group.Model
             PostUpdate();
         }
 
-
-
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al renderizado.
@@ -251,11 +253,14 @@ namespace TGC.Group.Model
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
             PreRender();
 
-            skyBox.Render();
+            //skyBox.Render();
 
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
+            DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.MovementVector), 0, 85, Color.White);
+            DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMin), 0, 105, Color.White);
+            DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMax), 0, 115, Color.White);
 
 
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
@@ -265,7 +270,7 @@ namespace TGC.Group.Model
                 es.Render();
             });
 
-
+         
             this.navePrincipal.Render();
 
             this.nave1.TransformMatix = nave1.ScaleFactor * nave1.RotationMatrix() * nave1.MovementMatrix();

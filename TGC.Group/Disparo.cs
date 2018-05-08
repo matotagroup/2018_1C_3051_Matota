@@ -17,17 +17,19 @@ namespace TGC.Group
         private int tiempoDisparo = 1000;
         private Stopwatch vida = null;
         public bool ShouldDie { get; private set; }
+        private TGCVector3 MovementDirection;
 
-        private const float velocidadDisparo = -3f;
+        private const float velocidadDisparo = -10f;
 
 
-        public Disparo(TGCVector3 startPosition)
+        public Disparo(TGCVector3 startPosition,TGCVector3 targetPosition,TGCVector3 size, Color color)
         {
             vida = Stopwatch.StartNew();
             ShouldDie = false;
-            modelo = TGCBox.fromSize(new TGCVector3(0.4f, 0.3f, 8f), Color.Red);
+            modelo = TGCBox.fromSize(size, color);
             modelo.AutoTransform = true;
             modelo.Position = startPosition;
+            MovementDirection = targetPosition;
         }
 
         public void Live(List<Disparo> disparos)
@@ -39,7 +41,7 @@ namespace TGC.Group
                 disparos.Remove(this);
             }
 
-            modelo.MoveOrientedY(velocidadDisparo);
+            modelo.Move(MovementDirection*velocidadDisparo);
         }
 
         public void Render()
