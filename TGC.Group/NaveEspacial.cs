@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace TGC.Group
         private bool shouldRight90Spin = false;
         private bool stopSpinning = false;
         private Arma arma;
+        private TGCVector3 shipShotSize = new TGCVector3(0.4f, 0.3f, 8f);
 
         public TgcBoundingOrientedBox OOB
         {
@@ -35,7 +37,7 @@ namespace TGC.Group
         public NaveEspacial(string MediaDir, string modelToUse)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
-            this.arma = new Arma();
+            this.arma = new Arma(shipShotSize, Color.Red);
             this.TransformMatix = TGCMatrix.Identity;
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
@@ -49,7 +51,7 @@ namespace TGC.Group
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar()
         {
-            this.arma.Disparar(this.MovementVector);
+            this.arma.Disparar(this.MovementVector,new TGCVector3(0f,0f,1f));
         }
 
         public void CreateOOB()

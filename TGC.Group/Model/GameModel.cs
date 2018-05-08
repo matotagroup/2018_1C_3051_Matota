@@ -92,7 +92,6 @@ namespace TGC.Group.Model
                     D3DDevice.Instance.ZFarPlaneDistance * 1.8f);
 
             this.escenarios = new List<Escenario>();
-           
             //Crear SkyBox
             skyBox = new TgcSkyBox();
             skyBox.Center = new TGCVector3(0, 0, -2300f);
@@ -117,10 +116,9 @@ namespace TGC.Group.Model
             for(int i = 0; i < 3;i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
+            escenarios.ForEach(es => es.generarTorre(MediaDir));
             currentScene = escenarios[0];
 
-            currentScene.generarTorre(MediaDir);
-           // escenarios.ForEach(escenario => escenario.generarTorre(MediaDir));
 
             this.navePrincipal.CreateOOB();
             this.nave1.CreateOOB();
@@ -158,7 +156,7 @@ namespace TGC.Group.Model
             var movimientoNave = TGCVector3.Empty;
 
             //Movernos de izquierda a derecha, sobre el eje X.
-             if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
+            if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
                 movimientoNave.X = 1;
             else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
                 movimientoNave.X = -1;
@@ -174,9 +172,9 @@ namespace TGC.Group.Model
             }
             else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
             {
-               /* if(movimientoZ<=0)
-                movimientoZ -= movimientoBaseZ;
-                else*/
+                /* if(movimientoZ<=0)
+                 movimientoZ -= movimientoBaseZ;
+                 else*/
                 movimientoNave.Z = -movimientoBaseZ;
             }
 
@@ -214,7 +212,10 @@ namespace TGC.Group.Model
             {
                 this.navePrincipal.Disparar();
             }
-
+            var torretasEnRango = currentScene.torresEnRango(navePrincipal.GetPosition());
+            torretasEnRango.ForEach(torre => { torre.disparar(new TGCVector3(0f,0f,1f)); torre.Update(); });
+            
+             
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
                 int nextSceneIndex = escenarios.FindIndex(es => es == currentScene) + 1;
@@ -224,9 +225,10 @@ namespace TGC.Group.Model
 
                 currentScene.MoveScene(escenarios.Count);
                 currentScene.MovementVector = currentScene.GetOffsetVectorMoved();
+                var nuevasPosiciones = currentScene.actualizarPosicionesTorretas(currentScene.MovementVector);
                 currentScene.UpdateBoundingBox();
+                currentScene.reordenarTorretas(nuevasPosiciones);
                 currentScene = escenarios[nextSceneIndex];
-              
             }
 
             //Actualiza la matrix de movimiento de la nave.
@@ -238,8 +240,6 @@ namespace TGC.Group.Model
 
             PostUpdate();
         }
-
-
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
@@ -256,7 +256,6 @@ namespace TGC.Group.Model
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
-
 
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
 

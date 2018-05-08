@@ -44,18 +44,7 @@ namespace TGC.Group
         {
             SceneNumber += timesToMove;
         }
-        public void generarTorre(string MediaDir)
-        {   
-            var torre = new Torre(MediaDir, posicionesTorres);
-            torres.Add(torre);
-        } 
-
-        private static List<TGCVector4> posicionesTorres = new List<TGCVector4> {
-            new TGCVector4(711.83f, -1100, 4000, 0),
-            new TGCVector4(1799.243f,-946.1815f,1775.645f, 0),
-            new TGCVector4(662.0941f, -1126.118f, -371.27f, 0),
-        };
-         
+    
         public Escenario(string MediaDir, string modelToUse)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir  + modelToUse, MediaDir + "XWing/");
@@ -80,6 +69,40 @@ namespace TGC.Group
             this.Scene.BoundingBox.scaleTranslate(this.MovementVector, defaultScale);
         }
 
+        private List<TGCVector4> posicionesTorres = new List<TGCVector4> {
+           new TGCVector4(711.83f, -1125f, -750f, 0),
+           new TGCVector4(1730.243f,-1030.1815f,1775.645f, 0),
+           new TGCVector4(1730.243f,-1050f,-3000f,0),
+           new TGCVector4(662.0941f, -1126.118f, -4000, 0),
+        };
+
+        public void generarTorre(string MediaDir)
+        {
+            var torre = new Torre(MediaDir, posicionesTorres);
+            torres.Add(torre);
+        }
+        public List<TGCVector4> actualizarPosicionesTorretas(TGCVector3 movimiento)
+        {
+            var vector = new TGCVector4();
+            vector.X = movimiento.X;
+            vector.Y = movimiento.Y;
+            vector.Z = movimiento.Z;
+            vector.W = 0f;
+            var nuevasPosiciones = new List<TGCVector4>();
+            posicionesTorres.ForEach(pos => { pos = pos + vector; nuevasPosiciones.Add(pos); });
+            return nuevasPosiciones;
+        }
+
+        public void reordenarTorretas(List<TGCVector4> posicionesTorretas)
+        {
+            torres.ForEach(torre => torre.posicion = torre.obtenerPosicionAlAzar(posicionesTorretas));
+        }
+
+        public List<Torre> torresEnRango(TGCVector3 targetPosition)
+        {
+            return torres.FindAll(torre => torre.enRango(targetPosition));
+        }
+
         public void Render(bool renderBoundingBox = false)
         {
             this.ForEachMesh((mesh) => {
@@ -88,9 +111,7 @@ namespace TGC.Group
                 if (renderBoundingBox)
                     mesh.BoundingBox.Render();
             });
-                this.torres.ForEach(torre => torre.Render());
-           
-            
+                this.torres.ForEach(torre => torre.Render()); 
         }
 
         public TGCMatrix RotationMatrix()
