@@ -61,10 +61,9 @@ namespace TGC.Group.Model
         private Escenario currentScene;
 
         //Sounds
-        //private TgcMp3Player sonidoAmbiente;
-        //private TgcMp3Player sonidoRotacion;
-        //private TgcMp3Player sonidoVelocidad;
-
+        private TgcMp3Player sonidoAmbiente;
+        //private TgcMp3Player sonidoLaser;
+        
         //Codigo De caja previo
         /*//Caja que se muestra en el ejemplo.
         private TGCBox Box { get; set; }
@@ -134,6 +133,16 @@ namespace TGC.Group.Model
             //Luego en nuestro juego tendremos que crear una cámara que cambie la matriz de view con variables como movimientos o animaciones de escenas.
 
             Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
+
+            //Cargar el MP3 sonido abiente
+            sonidoAmbiente = new TgcMp3Player();
+            sonidoAmbiente.FileName = MediaDir + "Music\\StarWarsMusic.mp3";
+            sonidoAmbiente.play(true);
+
+            //Sonido laser
+            //sonidoLaser = new TgcMp3Player();
+            //sonidoLaser.FileName = MediaDir + "Music\\laserSound.mp3";
+
         }
 
         /// <summary>
@@ -207,9 +216,23 @@ namespace TGC.Group.Model
                 this.navePrincipal.DoRight90Spin();
 
             //Disparar
+            //var estadoActual = sonidoLaser.getStatus();
+            var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
             if (Input.keyDown(Key.F))
             {
+               /*
+                if(estadoActual == TgcMp3Player.States.Open)
+                {
+                    sonidoLaser.play(false);  
+                }
+                if(estadoActual == TgcMp3Player.States.Stopped)
+                {
+                    sonidoLaser.closeFile(); 
+                    sonidoLaser.play(false);
+                }
+                */
                 this.navePrincipal.Disparar();
+                
             }
 
             navePrincipal.Update(ElapsedTime);
@@ -304,6 +327,8 @@ namespace TGC.Group.Model
             this.nave1.Scene.DisposeAll();
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
+            sonidoAmbiente.closeFile();
+            //sonidoLaser.closeFile();
         }
     }
 }
