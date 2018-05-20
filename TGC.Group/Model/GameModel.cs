@@ -237,7 +237,7 @@ namespace TGC.Group.Model
 
             navePrincipal.Update(ElapsedTime);
 
-            var torretasEnRango = currentScene.torresEnRango(navePrincipal.GetPosition());
+            var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
 
             torretasEnRango.ForEach(torre => { torre.disparar(navePrincipal.GetPosition()); torre.Update(); });
             

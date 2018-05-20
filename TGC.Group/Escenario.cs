@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,8 +37,15 @@ namespace TGC.Group
 
         private static readonly Dictionary<TgcBoundingAxisAlignBox, TGCVector3> boundingBoxes = new Dictionary<TgcBoundingAxisAlignBox, TGCVector3>
         {
+            //Piso -> 
             { new TgcBoundingAxisAlignBox(new TGCVector3(0,-2770.372f,-4000), new TGCVector3(4208.421f,0,4000)) , new TGCVector3(1500,-1000,0) },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(-700,-2770.372f,-4000), new TGCVector3(4208.421f,0,4000)) , new TGCVector3(-3300,-1200,0) }
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-700,-2770.372f,-4000), new TGCVector3(4208.421f,0,4000)) , new TGCVector3(-3300,-1200,0) },
+            //Torres -> 
+            { new TgcBoundingAxisAlignBox(new TGCVector3(850, -1201, 2203), new TGCVector3(550, -430, 2064)) , new TGCVector3(0,0,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(564, -1346, 765), new TGCVector3(90, 95, 576)) , new TGCVector3(0,0,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-1501,-1209,219), new TGCVector3(-2000, 1828, -14)) , new TGCVector3(0,0,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(1721, -1099, -1639), new TGCVector3(1520, -636, -1760)) , new TGCVector3(0,0,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(1545, -780, -1600), new TGCVector3(1425, -650,-1751)) , new TGCVector3(0,0,0) },
         };
  
         public static Escenario GenerarEscenarioDefault(string MediaDir, int numeroDeEscenario)
@@ -47,7 +55,7 @@ namespace TGC.Group
             e.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             e.MovementVector = e.GetOffsetVectorMoved();
             e.UpdateBoundingBox();
-            e.generarTorres(MediaDir, 2);
+            e.GenerarTorres(MediaDir, 2);
             return e;
         }
 
@@ -83,7 +91,7 @@ namespace TGC.Group
             return temp;
         }
 
-        public void generarTorres(string MediaDir, int cantidad)
+        public void GenerarTorres(string MediaDir, int cantidad)
         {   
             for(int i = 0; i < cantidad; i++)
             {
@@ -103,7 +111,7 @@ namespace TGC.Group
             this.Scene.BoundingBox.scaleTranslate(this.MovementVector, defaultScale);
         }
 
-        public List<Torre> torresEnRango(TGCVector3 targetPosition)
+        public List<Torre> TorresEnRango(TGCVector3 targetPosition)
         {
             return torres.FindAll(torre => torre.enRango(targetPosition));
         }
@@ -151,8 +159,11 @@ namespace TGC.Group
         public bool CheckCollision(NaveEspacial nave)
         {
             foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
+            {
+                entry.Key.scaleTranslate(entry.Value + this.GetOffsetVectorMoved(), TGCVector3.One);
                 if (TgcCollisionUtils.testObbAABB(nave.OOB, entry.Key))
                     return true;
+            }
 
             return torres.FindAll(t => TgcCollisionUtils.testObbAABB(nave.OOB, t.Scene.BoundingBox) ).Count > 0;
         }
