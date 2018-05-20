@@ -21,6 +21,7 @@ namespace TGC.Group
         public bool ShouldDie { get; private set; }
         private TGCVector3 MovementDirection;
 
+
         private const float velocidadDisparo = -5f;
 
         public TgcBoundingOrientedBox OOB
@@ -28,17 +29,17 @@ namespace TGC.Group
             private set; get;
         }
 
-        public float obtenerRotacionX(TGCVector3 a, TGCVector3 b)
+        public float ObtenerRotacionX(TGCVector3 a, TGCVector3 b)
         {
-            var rotacionAbs = obtenerRotacion(new TGCVector3(0, a.Y, a.Z), new TGCVector3(0, b.Y, b.Z));
+            var rotacionAbs = ObtenerRotacion(new TGCVector3(0, a.Y, a.Z), new TGCVector3(0, b.Y, b.Z));
             if (a.Y > b.Y)
                 return FastMath.TWO_PI - rotacionAbs;
             else
                 return rotacionAbs;
         }
-        public float obtenerRotacionY(TGCVector3 a, TGCVector3 b)
+        public float ObtenerRotacionY(TGCVector3 a, TGCVector3 b)
         {
-            var rotacionAbs= obtenerRotacion(new TGCVector3(a.X, 0, a.Z), new TGCVector3(b.X, 0, b.Z));
+            var rotacionAbs= ObtenerRotacion(new TGCVector3(a.X, 0, a.Z), new TGCVector3(b.X, 0, b.Z));
             if (a.X > b.X)
 
                 return FastMath.TWO_PI - rotacionAbs; 
@@ -46,7 +47,7 @@ namespace TGC.Group
                 return rotacionAbs;
         }
 
-        public float obtenerRotacion(TGCVector3 a,TGCVector3 b)
+        public float ObtenerRotacion(TGCVector3 a,TGCVector3 b)
         {
             return FastMath.Acos(TGCVector3.Dot(a, b) / (a.Length() * b.Length()));
         }
@@ -59,7 +60,7 @@ namespace TGC.Group
             modelo.AutoTransform = true;
             modelo.Position = startPosition;
             MovementDirection = TGCVector3.Normalize(startPosition-targetPosition);
-            modelo.Rotation = new TGCVector3(obtenerRotacionX(new TGCVector3(0, 0, 1), MovementDirection), obtenerRotacionY(new TGCVector3(0, 0, 1), MovementDirection),0);
+            modelo.Rotation = new TGCVector3(ObtenerRotacionX(new TGCVector3(0, 0, 1), MovementDirection), ObtenerRotacionY(new TGCVector3(0, 0, 1), MovementDirection),0);
             this.OOB = TgcBoundingOrientedBox.computeFromAABB(modelo.BoundingBox);
             //this.OOB.move(this.MovementDirection);
             this.OOB.rotate(modelo.Rotation);

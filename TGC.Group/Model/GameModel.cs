@@ -111,6 +111,7 @@ namespace TGC.Group.Model
             this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
 
             this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,0,-200f),navePrincipal,250f);
+            nave1.ArmaPrincipal.Danio = 1;
 
             for(int i = 0; i < 3;i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
@@ -137,7 +138,7 @@ namespace TGC.Group.Model
             //Cargar el MP3 sonido abiente
             sonidoAmbiente = new TgcMp3Player();
             sonidoAmbiente.FileName = MediaDir + "Music\\StarWarsMusic.mp3";
-            sonidoAmbiente.play(true);
+            //sonidoAmbiente.play(true);
 
             //Sonido laser
             //sonidoLaser = new TgcMp3Player();
@@ -244,7 +245,7 @@ namespace TGC.Group.Model
              
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
-                int nextSceneIndex = escenarios.FindIndex(es => es == currentScene) + 1;
+                int nextSceneIndex = escenarios.FindIndex(es => es.Equals(currentScene)) + 1;
 
                 if (nextSceneIndex == escenarios.Count)
                     nextSceneIndex = 0;
@@ -260,11 +261,15 @@ namespace TGC.Group.Model
             else
                 navePrincipal.OOB.setRenderColor(Color.Green);
 
+            //TODO: Esto tiene que cambiar, el escenario va a tener su lista de naves y ahi se tiene que manejar la colision!
             if (navePrincipal.CheckIfMyShotsCollided(nave1))
                 nave1.Scene.BoundingBox.setRenderColor(Color.Red);
 
-            //Actualiza la matrix de movimiento de la nave.
-            this.navePrincipal.Move(movimientoNave * ElapsedTime);
+            if (nave1.CheckIfMyShotsCollided(navePrincipal))
+                navePrincipal.Daniar(nave1.ArmaPrincipal.Danio);
+
+                //Actualiza la matrix de movimiento de la nave.
+                this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update();
 
             this.nave1.perseguir(ElapsedTime);
@@ -296,6 +301,7 @@ namespace TGC.Group.Model
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.MovementVector), 0, 85, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMin), 0, 105, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMax), 0, 115, Color.White);
+            DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
 
 
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();

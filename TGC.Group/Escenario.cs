@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TGC.Core.BoundingVolumes;
 using TGC.Core.Collision;
@@ -28,7 +29,6 @@ namespace TGC.Group
         public static readonly TGCVector3 offsetEscenarios = new TGCVector3(0, 0, -8000f);
         public static readonly TGCVector3 defaultScale = new TGCVector3(50f, 200f, 80f);
         private static List<TGCVector4> posicionesTorres = new List<TGCVector4> {
-            new TGCVector4(711.83f, -1000, 4500, 0),
             new TGCVector4(1799.243f,-946.1815f,1775.645f, FastMath.PI),
             new TGCVector4(2664,-1099, 120, FastMath.PI),
             new TGCVector4(662.0941f, -1126.118f, -371.27f, 0),
@@ -38,21 +38,28 @@ namespace TGC.Group
         private static readonly Dictionary<TgcBoundingAxisAlignBox, TGCVector3> boundingBoxes = new Dictionary<TgcBoundingAxisAlignBox, TGCVector3>
         {
             //Piso -> 
-            { new TgcBoundingAxisAlignBox(new TGCVector3(0,-2770.372f,-4000), new TGCVector3(4208.421f,0,4000)) , new TGCVector3(1500,-1000,0) },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(-700,-2770.372f,-4000), new TGCVector3(4208.421f,0,4000)) , new TGCVector3(-3300,-1200,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(0,-2770.372f,-4000),       new TGCVector3(4208.421f,0,4000)) , new TGCVector3(1500,-1000,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-700,-2770.372f,-4000),    new TGCVector3(4208.421f,0,4000)) , new TGCVector3(-3300,-1200,0) },
             //Torres -> 
-            { new TgcBoundingAxisAlignBox(new TGCVector3(850, -1201, 2203), new TGCVector3(550, -430, 2064)) , new TGCVector3(0,0,0) },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(564, -1346, 765), new TGCVector3(90, 95, 576)) , new TGCVector3(0,0,0) },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(-1501,-1209,219), new TGCVector3(-2000, 1828, -14)) , new TGCVector3(0,0,0) },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(1721, -1099, -1639), new TGCVector3(1520, -636, -1760)) , new TGCVector3(0,0,0) },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(1545, -780, -1600), new TGCVector3(1425, -650,-1751)) , new TGCVector3(0,0,0) },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(850, -1201, 2203),     new TGCVector3(550, -430, 2064)) ,      TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(564, -1346, 765),      new TGCVector3(90, 95, 576)) ,          TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-1501,-1209,219),      new TGCVector3(-2000, 1828, -14)) ,     TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(1721, -1099, -1639),   new TGCVector3(1520, -636, -1760)) ,    TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(1545, -780, -1600),    new TGCVector3(1425, -650,-1751)) ,     TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-1720, -1211, -1220),  new TGCVector3(-2038, -67, -1386)) ,    TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-1613, -275, -1244),   new TGCVector3(-1785,-110,-1368)) ,     TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(3177,-1085,-1628),     new TGCVector3(2700, 30, -1929)) ,      TGCVector3.Empty },
+            { new TgcBoundingAxisAlignBox(new TGCVector3(-2223, -1195, 2536),   new TGCVector3(-2740, 100, 2200)) ,     TGCVector3.Empty },
         };
  
         public static Escenario GenerarEscenarioDefault(string MediaDir, int numeroDeEscenario)
         {
-            Escenario e = new Escenario(MediaDir, "XWing/death+star-TgcScene.xml", numeroDeEscenario);
-            e.ScaleFactor = TGCMatrix.Scaling(Escenario.defaultScale);
-            e.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
+            Escenario e = new Escenario(MediaDir, "XWing/death+star-TgcScene.xml", numeroDeEscenario)
+            {
+                ScaleFactor = TGCMatrix.Scaling(Escenario.defaultScale),
+                RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0)
+            };
+
             e.MovementVector = e.GetOffsetVectorMoved();
             e.UpdateBoundingBox();
             e.GenerarTorres(MediaDir, 2);
@@ -128,11 +135,7 @@ namespace TGC.Group
             this.torres.ForEach(torre => torre.Render());
 
             foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
-            {
-                //Los valores con los cuales fueron armados estos BB estaticos ya estaban escalados por lo que no hay que volverlos a escalar, sin embargo el metodo Move() no funciona por algun motivo.
-                entry.Key.scaleTranslate(entry.Value + this.GetOffsetVectorMoved(), TGCVector3.One);
                 entry.Key.Render();
-            }
 
         }
 

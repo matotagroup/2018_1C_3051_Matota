@@ -13,15 +13,19 @@ using TGC.Core.Textures;
 
 namespace TGC.Group
 {
-    class Arma
+    public class Arma
     {
         private List<Disparo> disparos;
         private TGCVector3 shotSize;
         private Color shotColor;
         private Stopwatch shotLimiter;
 
-        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo)
+        public int Danio { set; get; }
+
+
+        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo, int danio)
         {
+            this.Danio = danio;
             this.shotSize = tamanioDisparo;
             this.shotColor = colorDisparo;
             this.disparos = new List<Disparo>();
@@ -41,7 +45,9 @@ namespace TGC.Group
 
         public bool CheckShots(NaveEspacial nave)
         {
-            return disparos.FindAll(t => t.HayColision(nave)).Count > 0;
+            var cols = disparos.FindAll(t => t.HayColision(nave)).Select( t => disparos.IndexOf(t)).ToList();
+            cols.ForEach(e => disparos.RemoveAt(e));
+            return cols.Count() > 0;
         }
 
         public void Update()

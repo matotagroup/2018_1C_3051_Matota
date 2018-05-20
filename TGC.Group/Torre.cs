@@ -28,7 +28,7 @@ public class Torre
         this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelosDisponibles[new Random().Next(modelosDisponibles.Count)], MediaDir + "XWing/");
 
         ScaleFactor = new TGCVector3(5f, 5f, 5f);
-        arma = new Arma(turretShotSize, Color.Green);
+        arma = new Arma(turretShotSize, Color.Green, 1);
 
         this.ActionOnTorre(mesh => {
             mesh.AutoTransform = false;

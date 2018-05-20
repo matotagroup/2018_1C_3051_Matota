@@ -26,8 +26,10 @@ namespace TGC.Group
         private bool shouldLeft90Spin = false;
         private bool shouldRight90Spin = false;
         private bool stopSpinning = false;
-        private Arma arma;
+        public Arma ArmaPrincipal { get; private set; }
         private TGCVector3 shipShotSize = new TGCVector3(0.4f, 0.3f, 8f);
+
+        public int Vida { get; private set; }  = 100;
 
         public TgcBoundingOrientedBox OOB
         {
@@ -37,7 +39,7 @@ namespace TGC.Group
         public NaveEspacial(string MediaDir, string modelToUse)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
-            this.arma = new Arma(shipShotSize, Color.Red);
+            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, 10);
             this.TransformMatix = TGCMatrix.Identity;
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
@@ -48,15 +50,28 @@ namespace TGC.Group
             });
         }
 
+        public NaveEspacial(string MediaDir, string modelToUse, int danio): this(MediaDir, modelToUse)
+        {
+            this.ArmaPrincipal.Danio = danio;
+        }
+
+        public void Daniar(int cantidadDanio)
+        {
+            this.Vida -= cantidadDanio;
+
+            //if(this.vida <= 0)
+            //Hacer algo cuando muere una nave!
+        }
+
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar()
         {
-            this.arma.Disparar(this.MovementVector,this.MovementVector-new TGCVector3(0f,0f,1f));
+            this.ArmaPrincipal.Disparar(this.MovementVector,this.MovementVector-new TGCVector3(0f,0f,1f));
         }
 
         public void Disparar(TGCVector3 target)
         {
-            this.arma.Disparar(this.MovementVector,target);
+            this.ArmaPrincipal.Disparar(this.MovementVector,target);
         }
 
         public void CreateOOB()
@@ -199,12 +214,12 @@ namespace TGC.Group
 
         public void Update()
         {
-            this.arma.Update();
+            this.ArmaPrincipal.Update();
         }
 
         public bool CheckIfMyShotsCollided(NaveEspacial otraNave)
         {
-            return this.arma.CheckShots(otraNave);
+            return this.ArmaPrincipal.CheckShots(otraNave);
         }
 
         public void Update(float ElapsedTime)
@@ -228,7 +243,7 @@ namespace TGC.Group
                 //    mesh.BoundingBox.Render();
             });
 
-            this.arma.Render();
+            this.ArmaPrincipal.Render();
         }
 
         public void ActionOnNave(System.Action<TgcMesh> action)
