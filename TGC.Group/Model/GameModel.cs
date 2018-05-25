@@ -14,6 +14,8 @@ using TGC.Core.Collision;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using TGC.Core.Shaders;
+using Microsoft.DirectX.Direct3D;
 
 namespace TGC.Group.Model
 {
@@ -54,6 +56,9 @@ namespace TGC.Group.Model
         private float factorMovimientoZ = 0.25f;
 
         public Torre torreta;
+        private TGCBox sol;
+
+
 
         /// <summary>
         /// Representa el scene donde actualmente esta el jugador.
@@ -113,7 +118,7 @@ namespace TGC.Group.Model
             this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,0,-200f),navePrincipal,250f);
             nave1.ArmaPrincipal.Danio = 1;
 
-            for(int i = 0; i < 3;i++)
+            for(int i = 0; i < 5;i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
             //escenarios.ForEach(es => es.generarTorre(MediaDir));
@@ -127,7 +132,7 @@ namespace TGC.Group.Model
             //Posición de la camara.
             var cameraPosition = new TGCVector3(0, 0, 0);
             //Quiero que la camara mire hacia el origen (0,0,0).
-            var lookAt = TGCVector3.Empty;
+            var lookAt = new TGCVector3(-50000, -1, 0);
             //Configuro donde esta la posicion de la camara y hacia donde mira.
             Camara.SetCamera(cameraPosition, lookAt);
             //Internamente el framework construye la matriz de view con estos dos vectores.
@@ -138,6 +143,9 @@ namespace TGC.Group.Model
             //Cargar el MP3 sonido abiente
             sonidoAmbiente = new TgcMp3Player();
             sonidoAmbiente.FileName = MediaDir + "Music\\StarWarsMusic.mp3";
+
+            sol = TGCBox.fromSize(new TGCVector3(0,-500,0), new TGCVector3(5, 5, 5), Color.Yellow);
+            sol.AutoTransform = true;
             //sonidoAmbiente.play(true);
 
             //Sonido laser
@@ -277,7 +285,9 @@ namespace TGC.Group.Model
             if (Input.keyDown(Key.H))
                 nave1.Move(new TGCVector3(-0.1f,0,-0.1f));
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
-            
+            //this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
+
+
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
             PostUpdate();
@@ -294,6 +304,36 @@ namespace TGC.Group.Model
             PreRender();
 
             skyBox.Render();
+            sol.Render();
+
+            //Seteo el effect del mesh de la nave.
+            navePrincipal.ActionOnNave(m =>
+            {
+                m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
+                m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
+                m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
+                m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(150, 150, 150)));
+
+
+                m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(99,72,7)));
+                m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(99, 72, 7)));
+                m.Effect.SetValue("specularExp", 50f);
+            });
+
+            escenarios.ForEach(e => {
+                   e.ForEachMesh(m =>
+                   {
+                       m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
+                       m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
+                       m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
+                       m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(150, 150, 150)));
+
+                       m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(99,72,7)));
+                       m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(99, 72, 7)));
+                       m.Effect.SetValue("specularExp", 50f);
+                   });
+            });
+
 
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
