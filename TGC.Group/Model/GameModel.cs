@@ -272,7 +272,7 @@ namespace TGC.Group.Model
                 this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update();
 
-            this.nave1.perseguir(ElapsedTime);
+            this.nave1.Perseguir(ElapsedTime);
             this.nave1.Update();
             if (Input.keyDown(Key.H))
                 nave1.Move(new TGCVector3(-0.1f,0,-0.1f));
