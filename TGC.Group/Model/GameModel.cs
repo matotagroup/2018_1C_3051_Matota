@@ -312,11 +312,13 @@ namespace TGC.Group.Model
                 m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
                 m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
                 m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
-                m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(150, 150, 150)));
+                m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 150, 150, 150)));
 
 
-                m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(99,72,7)));
-                m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(99, 72, 7)));
+                m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(255, 99,72,7)));
+                m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
+                //m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.Black));
+
                 m.Effect.SetValue("specularExp", 50f);
             });
 
@@ -326,10 +328,12 @@ namespace TGC.Group.Model
                        m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
                        m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
                        m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
-                       m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(150, 150, 150)));
+                       m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 150, 150, 150)));
 
-                       m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(99,72,7)));
-                       m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(99, 72, 7)));
+                       m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(255, 99,72,7)));
+                       m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
+                       //m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.Black));
+
                        m.Effect.SetValue("specularExp", 50f);
                    });
             });

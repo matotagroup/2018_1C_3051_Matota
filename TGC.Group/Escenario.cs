@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using TGC.Core.BoundingVolumes;
 using TGC.Core.Collision;
+using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 
@@ -24,8 +25,7 @@ namespace TGC.Group
         public TGCVector3 MovementVector { get; set; }
         public int SceneNumber { get; private set; } = 0;
         public List<Torre> torres;
-
-
+       
         public static readonly TGCVector3 offsetEscenarios = new TGCVector3(0, 0, -8000f);
         public static readonly TGCVector3 defaultScale = new TGCVector3(50f, 200f, 80f);
         private static List<TGCVector4> posicionesTorres = new List<TGCVector4> {
@@ -35,21 +35,23 @@ namespace TGC.Group
             new TGCVector4(-1351,-1100,2112, 0),
         };
 
+        private static readonly List<TGCBox> boundingBoxesTowers = new List<TGCBox> {
+            { TGCBox.fromExtremes(new TGCVector3(850, -1201, 2203),     new TGCVector3(550, -430, 2064))  },
+            { TGCBox.fromExtremes(new TGCVector3(564, -1346, 765),      new TGCVector3(90, 95, 576)) },
+            { TGCBox.fromExtremes(new TGCVector3(-1501,-1209,219),      new TGCVector3(-2000, 1828, -14)) },
+            { TGCBox.fromExtremes(new TGCVector3(1721, -1099, -1639),   new TGCVector3(1520, -636, -1760)) },
+            { TGCBox.fromExtremes(new TGCVector3(1545, -780, -1600),    new TGCVector3(1425, -650,-1751)) },
+            { TGCBox.fromExtremes(new TGCVector3(-1720, -1211, -1220),  new TGCVector3(-2038, -67, -1386))},
+            { TGCBox.fromExtremes(new TGCVector3(-1613, -275, -1244),   new TGCVector3(-1785,-110,-1368)) },
+            { TGCBox.fromExtremes(new TGCVector3(3177,-1085,-1628),     new TGCVector3(2700, 30, -1929))  },
+            { TGCBox.fromExtremes(new TGCVector3(-2223, -1195, 2536),   new TGCVector3(-2740, 100, 2200))  },
+        };
+
         private static readonly Dictionary<TgcBoundingAxisAlignBox, TGCVector3> boundingBoxes = new Dictionary<TgcBoundingAxisAlignBox, TGCVector3>
         {
             //Piso -> 
             { new TgcBoundingAxisAlignBox(new TGCVector3(0,-2770.372f,-4000),       new TGCVector3(4208.421f,0,4000)) , new TGCVector3(1500,-1000,0) },
             { new TgcBoundingAxisAlignBox(new TGCVector3(-700,-2770.372f,-4000),    new TGCVector3(4208.421f,0,4000)) , new TGCVector3(-3300,-1200,0) },
-            //Torres -> 
-            { new TgcBoundingAxisAlignBox(new TGCVector3(850, -1201, 2203),     new TGCVector3(550, -430, 2064)) ,      TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(564, -1346, 765),      new TGCVector3(90, 95, 576)) ,          TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(-1501,-1209,219),      new TGCVector3(-2000, 1828, -14)) ,     TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(1721, -1099, -1639),   new TGCVector3(1520, -636, -1760)) ,    TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(1545, -780, -1600),    new TGCVector3(1425, -650,-1751)) ,     TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(-1720, -1211, -1220),  new TGCVector3(-2038, -67, -1386)) ,    TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(-1613, -275, -1244),   new TGCVector3(-1785,-110,-1368)) ,     TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(3177,-1085,-1628),     new TGCVector3(2700, 30, -1929)) ,      TGCVector3.Empty },
-            { new TgcBoundingAxisAlignBox(new TGCVector3(-2223, -1195, 2536),   new TGCVector3(-2740, 100, 2200)) ,     TGCVector3.Empty },
         };
  
         public static Escenario GenerarEscenarioDefault(string MediaDir, int numeroDeEscenario)
@@ -125,6 +127,7 @@ namespace TGC.Group
 
         public void Render(bool renderBoundingBox = false)
         {
+
             this.ForEachMesh((mesh) => {
                 mesh.Transform = TransformMatix;
                 mesh.Render();
@@ -133,6 +136,7 @@ namespace TGC.Group
             });
 
             this.torres.ForEach(torre => torre.Render());
+            boundingBoxesTowers.ForEach(m => m.BoundingBox.Render());
 
             foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
                 entry.Key.Render();
@@ -161,10 +165,19 @@ namespace TGC.Group
 
         public bool CheckCollision(NaveEspacial nave)
         {
+            TGCVector3 offset = this.GetOffsetVectorMoved();
             foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
             {
-                entry.Key.scaleTranslate(entry.Value + this.GetOffsetVectorMoved(), TGCVector3.One);
+                entry.Key.scaleTranslate(entry.Value + offset, TGCVector3.One);
                 if (TgcCollisionUtils.testObbAABB(nave.OOB, entry.Key))
+                    return true;
+            }
+
+            foreach(var m in boundingBoxesTowers)
+            {
+                m.Transform = TGCMatrix.Translation(offset);
+                m.BoundingBox.transform(m.Transform);
+                if (TgcCollisionUtils.testObbAABB(nave.OOB, m.BoundingBox))
                     return true;
             }
 
