@@ -174,6 +174,8 @@ namespace TGC.Group.Model
             drawer = new Drawer2D();
         }
 
+        TGCVector3 temp;
+
         /// <summary>
         ///     Se llama en cada frame.
         ///     Se debe escribir toda la lógica de computo del modelo, así como también verificar entradas del usuario y reacciones
@@ -227,13 +229,22 @@ namespace TGC.Group.Model
 
                     movimientoNave.Z = movimientoZ;
                 }
+
+                if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
+                {
+                    if (movimientoZ < movimientoBaseZ)
+                    {
+                        movimientoZ += factorMovimientoZ;
+                    }
+                    movimientoNave.Z = movimientoZ;
+                }
                 //Movernos adelante y atras, sobre el eje Z.
 
-                if (movimientoZ < movimientoBaseZ)
-                {
-                    movimientoZ += factorMovimientoZ;
-                }
-                movimientoNave.Z = movimientoZ;
+                //if (movimientoZ < movimientoBaseZ)
+                //{
+                //    movimientoZ += factorMovimientoZ;
+                //}
+                //movimientoNave.Z = movimientoZ;
 
                 /* else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
              {
@@ -309,8 +320,12 @@ namespace TGC.Group.Model
             if (nave1.CheckIfMyShotsCollided(navePrincipal))
                 navePrincipal.Daniar(nave1.ArmaPrincipal.Danio);
 
-                //Actualiza la matrix de movimiento de la nave.
-                this.navePrincipal.Move(movimientoNave * ElapsedTime);
+
+            temp = currentScene.CheckLimits(navePrincipal, movimientoNave);
+            movimientoNave -= TGCVector3.Multiply(currentScene.CheckLimits(navePrincipal, movimientoNave), 7);
+
+            //Actualiza la matrix de movimiento de la nave.
+            this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update();
 
             this.nave1.Perseguir(ElapsedTime);
@@ -381,6 +396,7 @@ namespace TGC.Group.Model
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.MovementVector), 0, 85, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMin), 0, 105, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMax), 0, 115, Color.White);
+            DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(temp), 0, 200, Color.White);
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
 
 
