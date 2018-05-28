@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using TGC.Core.Shaders;
 using Microsoft.DirectX.Direct3D;
+using TGC.Group.Model.UtilsParaGUI;
 
 namespace TGC.Group.Model
 {
@@ -38,7 +39,6 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
-
         //Scenes
         private NaveEspacial navePrincipal;
         private List<Escenario> escenarios;
@@ -57,7 +57,8 @@ namespace TGC.Group.Model
 
         public Torre torreta;
         private TGCBox sol;
-
+        private Menu menu;
+        private Drawer2D drawer;
 
 
         /// <summary>
@@ -67,6 +68,7 @@ namespace TGC.Group.Model
 
         //Sounds
         private TgcMp3Player sonidoAmbiente;
+        private TgcMp3Player sonidoMenu;
         //private TgcMp3Player sonidoLaser;
         
         //Codigo De caja previo
@@ -143,15 +145,26 @@ namespace TGC.Group.Model
             //Cargar el MP3 sonido abiente
             sonidoAmbiente = new TgcMp3Player();
             sonidoAmbiente.FileName = MediaDir + "Music\\StarWarsMusic.mp3";
+            sonidoMenu = new TgcMp3Player();
+            sonidoMenu.FileName = MediaDir + "Music\\musica_menu.mp3";
 
             sol = TGCBox.fromSize(new TGCVector3(0,-500,0), new TGCVector3(5, 5, 5), Color.Yellow);
             sol.AutoTransform = true;
-            //sonidoAmbiente.play(true);
+            /*if(menu.sonidoAmbiente())
+              {
+                    sonidoAmbiente.play(true);
+              }
+             
+            if (menu.sonidoMenu)
+            {
+                sonidoMenu.play(true);
+            }*/
 
             //Sonido laser
             //sonidoLaser = new TgcMp3Player();
             //sonidoLaser.FileName = MediaDir + "Music\\laserSound.mp3";
-
+            menu = new Menu(MediaDir,Input);
+            drawer = new Drawer2D();
         }
 
         /// <summary>
@@ -302,6 +315,7 @@ namespace TGC.Group.Model
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
+            menu.Update(ElapsedTime);
             PostUpdate();
         }
 
@@ -373,7 +387,7 @@ namespace TGC.Group.Model
             this.nave1.TransformMatix = nave1.ScaleFactor * nave1.RotationMatrix() * nave1.MovementMatrix();
 
             this.nave1.Render();
-
+            menu.Render(ElapsedTime,drawer);
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }
@@ -390,6 +404,7 @@ namespace TGC.Group.Model
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
             sonidoAmbiente.closeFile();
+            menu.Dispose();
             //sonidoLaser.closeFile();
         }
     }
