@@ -16,8 +16,9 @@ public class Torre
     public TGCVector3 rotacion;
 
     private Arma arma;
-    private TGCVector3 turretShotSize = new TGCVector3(1.5f, 1.5f, 8f);
+    private TGCVector3 turretShotSize = new TGCVector3(3f, 3f, 8f);
     private float rangoMaximo = 5000f;
+    private TGCVector3 posicionInicialArma;
 
     public static readonly List<string> modelosDisponibles = new List<string> {
         "torreta2-TgcScene.xml", "Turbolaser-TgcScene.xml"
@@ -28,17 +29,26 @@ public class Torre
         this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelosDisponibles[new Random().Next(modelosDisponibles.Count)], MediaDir + "XWing/");
 
         ScaleFactor = new TGCVector3(5f, 5f, 5f);
-        arma = new Arma(turretShotSize, Color.Green, 1);
+        posicionArma.TryGetValue(this.Scene.SceneName, out posicionInicialArma);
+        arma = new Arma(turretShotSize, Color.Green, 1, posicionInicialArma);
 
         this.ActionOnTorre(mesh => {
             mesh.AutoTransform = false;
         });
     }
 
+    private static readonly Dictionary<string, TGCVector3> posicionArma = new Dictionary<string, TGCVector3>
+    {
+        { "torreta2", new TGCVector3(-150f,200f,0)},
+        { "Turbolaser", new TGCVector3(-360f,240f,75f) }
+    };
+
     public void Relocate(TGCVector4 newPosition)
     {
         this.posicion = new TGCVector3(newPosition.X, newPosition.Y, newPosition.Z);
         this.rotacion = new TGCVector3(0, newPosition.W, 0);
+        posicionArma.TryGetValue(this.Scene.SceneName, out posicionInicialArma);
+        arma.Move(this.posicion+posicionInicialArma);
     }
 
     public float distanciaObjetivo(TGCVector3 posicionObjetivo)
@@ -48,7 +58,7 @@ public class Torre
 
     public void disparar(TGCVector3 targetPosition)
     {
-        this.arma.Disparar(this.posicion, targetPosition);
+        this.arma.Disparar(targetPosition);
     }
 
     public bool enRango(TGCVector3 targetPosition)

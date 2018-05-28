@@ -39,11 +39,11 @@ namespace TGC.Group
         public NaveEspacial(string MediaDir, string modelToUse)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
-            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, 10);
             this.TransformMatix = TGCMatrix.Identity;
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
             this.MovementVector = TGCVector3.Empty;
+            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, 10, this.GetPosition());
 
             this.ActionOnNave((mesh) => {
                 mesh.AutoTransform = false; //Desactivar el autotransform para poder usar el mesh.transform.
@@ -66,12 +66,12 @@ namespace TGC.Group
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar()
         {
-            this.ArmaPrincipal.Disparar(this.MovementVector,this.MovementVector-new TGCVector3(0f,0f,1f));
+            this.ArmaPrincipal.Disparar(this.MovementVector-new TGCVector3(0f,0f,1f));
         }
 
         public void Disparar(TGCVector3 target)
         {
-            this.ArmaPrincipal.Disparar(this.MovementVector,target);
+            this.ArmaPrincipal.Disparar(target);
         }
 
         public void CreateOOB()
@@ -205,6 +205,7 @@ namespace TGC.Group
         {
             this.OOB.move(newOffset * speed);
             this.MovementVector = this.MovementVector + newOffset * speed;
+            ArmaPrincipal.Move(this.GetPosition());
         }
 
         public TGCVector3 GetPosition()
@@ -242,7 +243,6 @@ namespace TGC.Group
                 //if (renderBoundingBox)
                 //    mesh.BoundingBox.Render();
             });
-
             this.ArmaPrincipal.Render();
         }
 
