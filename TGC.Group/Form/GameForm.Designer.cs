@@ -1,4 +1,5 @@
-﻿namespace TGC.Group.Form
+﻿
+namespace TGC.Group.Form
 {
     partial class GameForm
     {
@@ -6,7 +7,7 @@
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
+        
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -58,6 +59,8 @@
         #endregion
 
         private System.Windows.Forms.Panel panel3D;
+
+        
     }
 }
 

@@ -64,7 +64,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Windows\Microsoft.NET\DirectX for Managed Code\1.0.2902.0\Microsoft.DirectX.Direct3D.dll</HintPath>
     </Reference>
-	<Reference Include="Microsoft.DirectX.Direct3DX, Version=1.0.2909.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+    <Reference Include="Microsoft.DirectX.Direct3DX, Version=1.0.2909.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Windows\Microsoft.NET\DirectX for Managed Code\1.0.2911.0\Microsoft.DirectX.Direct3DX.dll</HintPath>
     </Reference>
@@ -82,8 +82,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Acciones.cs" />
     <Compile Include="Camara.cs" />
     <Compile Include="Arma.cs" />
+    <Compile Include="Menu.cs" />
+    <Compile Include="Model\UtilsParaGUI\CustomBitmap.cs" />
+    <Compile Include="Model\UtilsParaGUI\CustomSprite.cs" />
+    <Compile Include="Model\UtilsParaGUI\Drawer2D.cs" />
     <Compile Include="NaveEnemiga.cs" />
     <Compile Include="Disparo.cs" />
     <Compile Include="Escenario.cs" />

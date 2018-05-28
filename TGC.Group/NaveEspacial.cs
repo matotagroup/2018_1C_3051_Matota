@@ -218,6 +218,13 @@ namespace TGC.Group
             this.ArmaPrincipal.Update();
         }
 
+        public int pierdeVidas(int cantVidas)
+        {
+            Vida = cantVidas;
+
+            return Vida;
+        }
+
         public bool CheckIfMyShotsCollided(NaveEspacial otraNave)
         {
             return this.ArmaPrincipal.CheckShots(otraNave);

@@ -9,7 +9,7 @@ using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.Textures;
-
+using TGC.Group.Form;
 
 namespace TGC.Group
 {
@@ -76,4 +76,7 @@ namespace TGC.Group
             position = posicionNueva;
         }
     }
+
 }
+
+
