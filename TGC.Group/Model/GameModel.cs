@@ -99,7 +99,7 @@ namespace TGC.Group.Model
             //Crear SkyBox
             skyBox = new TgcSkyBox();
             skyBox.Center = new TGCVector3(0, 0, -2300f);
-            skyBox.Size = new TGCVector3(10000, 5500, 18000);
+            skyBox.Size = new TGCVector3(10000, 10000, 18000);
             var texturesPath = MediaDir + "XWing\\Textures\\";
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "space.jpg");
               skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "space.jpg");
@@ -285,6 +285,8 @@ namespace TGC.Group.Model
             if (Input.keyDown(Key.H))
                 nave1.Move(new TGCVector3(-0.1f,0,-0.1f));
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
+
+            //this.skyBox.Center += new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000;
             //this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
 
 
