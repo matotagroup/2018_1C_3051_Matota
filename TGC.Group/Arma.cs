@@ -19,26 +19,30 @@ namespace TGC.Group
         private TGCVector3 shotSize;
         private Color shotColor;
         private Stopwatch shotLimiter;
+        private TGCVector3 position;
+        public TGCMatrix TransformMatix { get; set; }
 
         public int Danio { set; get; }
 
 
-        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo, int danio)
+        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo, int danio, TGCVector3 startPosition)
         {
             this.Danio = danio;
             this.shotSize = tamanioDisparo;
             this.shotColor = colorDisparo;
             this.disparos = new List<Disparo>();
             shotLimiter = Stopwatch.StartNew();
+            position = startPosition;
+
         }
         
 
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
-        public void Disparar(TGCVector3 startPosition,TGCVector3 targetPosition)
+        public void Disparar(TGCVector3 targetPosition)
         {
             if(shotLimiter.ElapsedMilliseconds > 250)
             {
-                this.disparos.Add(new Disparo(startPosition,targetPosition,shotSize,shotColor));
+                this.disparos.Add(new Disparo(position,targetPosition,shotSize,shotColor));
                 shotLimiter.Restart();
             }
         }
@@ -74,6 +78,11 @@ namespace TGC.Group
             {
                 disparo.Render();
             });
+        }
+
+        public void Move(TGCVector3 posicionNueva)
+        {
+            position = posicionNueva;
         }
     }
 
