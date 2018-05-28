@@ -45,6 +45,19 @@ namespace TGC.Group
             { TGCBox.fromExtremes(new TGCVector3(-1613, -275, -1244),   new TGCVector3(-1785,-110,-1368)) },
             { TGCBox.fromExtremes(new TGCVector3(3177,-1085,-1628),     new TGCVector3(2700, 30, -1929))  },
             { TGCBox.fromExtremes(new TGCVector3(-2223, -1195, 2536),   new TGCVector3(-2740, 100, 2200))  },
+             //PISO
+            { TGCBox.fromExtremes(new TGCVector3(-2223, -3000, 4000),   new TGCVector3(2700,-2042,-9000)) },
+            //TECHO
+            { TGCBox.fromExtremes(new TGCVector3(-2223, 200,4000),   new TGCVector3(2700,400,-9000)) },
+
+            //DERECHA
+            { TGCBox.fromExtremes(new TGCVector3 (964, -2042,4000) , new TGCVector3 (-2223,-1100,-9000)) },
+            
+            //IZQUIERDA
+           { TGCBox.fromExtremes(new TGCVector3  (2700, -2042,4000),  new TGCVector3 (1495 ,-1053,-9000)) },
+
+            //BB DE PUENTE
+            { TGCBox.fromExtremes(new TGCVector3  (1544, -1537, -2873),  new TGCVector3 (830,-1255,-2974)) },
         };
 
         private static readonly Dictionary<TgcBoundingAxisAlignBox, TGCVector3> boundingBoxes = new Dictionary<TgcBoundingAxisAlignBox, TGCVector3>

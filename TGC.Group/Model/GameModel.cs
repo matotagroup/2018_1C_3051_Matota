@@ -174,9 +174,13 @@ namespace TGC.Group.Model
 
             //Movernos de izquierda a derecha, sobre el eje X.
             if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
-                movimientoNave.X = 1;
+                if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = 1; }
+                else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
+
+
             else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
-                movimientoNave.X = -1;
+                if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = -1; }
+                else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
 
             //Movernos adelante y atras, sobre el eje Z.
             if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
@@ -197,9 +201,15 @@ namespace TGC.Group.Model
 
             //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
             if (Input.keyDown(Key.E))
-                movimientoNave.Y = 1;
+                if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.Y = 1; }
+                else { movimientoNave.Y = -3; }
+
+
             else if (Input.keyDown(Key.LeftControl))
-                movimientoNave.Y = -1;
+            {
+                if (!currentScene.CheckCollision(navePrincipal)) movimientoNave.Y = -1;
+                else { movimientoNave.Y = 3; }
+            }
 
             //boost de velocidad con shift
             if (Input.keyDown(Key.LeftShift) && (Input.keyDown(Key.Up) || Input.keyDown(Key.W)))
