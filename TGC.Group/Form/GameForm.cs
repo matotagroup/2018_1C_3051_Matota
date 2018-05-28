@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
 using TGC.Core.Direct3D;
@@ -97,8 +98,13 @@ namespace TGC.Group.Form
             Modelo = new GameModel(currentDirectory + Game.Default.MediaDirectory,
                 currentDirectory + Game.Default.ShadersDirectory);
 
+            
             //Cargar juego.
             ExecuteModel();
+
+
+            
+
         }
 
         /// <summary>

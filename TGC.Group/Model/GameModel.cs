@@ -17,6 +17,7 @@ using System.Diagnostics;
 using TGC.Core.Shaders;
 using Microsoft.DirectX.Direct3D;
 using TGC.Group.Model.UtilsParaGUI;
+using TGC.Group.Form;
 
 namespace TGC.Group.Model
 {
@@ -39,6 +40,9 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
+
+
+
         //Scenes
         private NaveEspacial navePrincipal;
         private List<Escenario> escenarios;
@@ -55,6 +59,7 @@ namespace TGC.Group.Model
 
         private float factorMovimientoZ = 0.25f;
 
+        
         public Torre torreta;
         private TGCBox sol;
         private Menu menu;
@@ -89,6 +94,8 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
+          
+
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
             D3DDevice.Instance.Device.Transform.Projection =
@@ -185,87 +192,90 @@ namespace TGC.Group.Model
 
             var movimientoNave = TGCVector3.Empty;
 
-            //Movernos de izquierda a derecha, sobre el eje X.
-            if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
-                if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = 1; }
-                else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
+            if (!menu.menuPrincipal) {
+
+                //Movernos de izquierda a derecha, sobre el eje X.
+                if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
+                    if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = 1; }
+                    else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
 
 
-            else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
-                if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = -1; }
-                else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
+                else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
+                    if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = -1; }
+                    else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
 
-            //Movernos adelante y atras, sobre el eje Z.
-            if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
-            {
+
+                //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
+                if (Input.keyDown(Key.E))
+                    if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.Y = 1; }
+                    else { movimientoNave.Y = -3; }
+
+
+                else if (Input.keyDown(Key.LeftControl))
+                {
+                    if (!currentScene.CheckCollision(navePrincipal)) movimientoNave.Y = -1;
+                    else { movimientoNave.Y = 3; }
+                }
+
+                //boost de velocidad con shift
+                if (Input.keyDown(Key.LeftShift))
+                {
+                    if (movimientoZ > movimientoMaximoZ)
+                    {
+                        movimientoZ -= factorMovimientoZ*3;
+                    }
+
+                    movimientoNave.Z = movimientoZ;
+                }
+                //Movernos adelante y atras, sobre el eje Z.
+
                 if (movimientoZ < movimientoBaseZ)
                 {
                     movimientoZ += factorMovimientoZ;
                 }
                 movimientoNave.Z = movimientoZ;
-            }
-            else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
-            {
-                /* if(movimientoZ<=0)
-                 movimientoZ -= movimientoBaseZ;
-                 else*/
-                movimientoNave.Z = -movimientoBaseZ;
-            }
 
-            //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
-            if (Input.keyDown(Key.E))
-                if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.Y = 1; }
-                else { movimientoNave.Y = -3; }
+                /* else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
+             {
+                  if(movimientoZ<=0)
+                  movimientoZ -= movimientoBaseZ;
+                  else
+            movimientoNave.Z = -movimientoBaseZ;
+            }*/
 
+                //Activar BarrelRoll 
+                //TODO: Implementar cooldown?
+                if (Input.keyDown(Key.Space))
+                    this.navePrincipal.DoBarrelRoll();
 
-            else if (Input.keyDown(Key.LeftControl))
-            {
-                if (!currentScene.CheckCollision(navePrincipal)) movimientoNave.Y = -1;
-                else { movimientoNave.Y = 3; }
-            }
+                if (Input.keyDown(Key.Z))
+                    this.navePrincipal.DoLeft90Spin();
 
-            //boost de velocidad con shift
-            if (Input.keyDown(Key.LeftShift) && (Input.keyDown(Key.Up) || Input.keyDown(Key.W)))
-            {
-                if (movimientoZ > movimientoMaximoZ)
+                if (Input.keyDown(Key.X))
+                    this.navePrincipal.DoRight90Spin();
+
+                //Disparar
+                //var estadoActual = sonidoLaser.getStatus();
+                var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
+                if (Input.keyDown(Key.F))
                 {
-                    movimientoZ -= factorMovimientoZ;
+                    /*
+                     if(estadoActual == TgcMp3Player.States.Open)
+                     {
+                         sonidoLaser.play(false);  
+                     }
+                     if(estadoActual == TgcMp3Player.States.Stopped)
+                     {
+                         sonidoLaser.closeFile(); 
+                         sonidoLaser.play(false);
+                     }
+                     */
+                    this.navePrincipal.Disparar();
+
                 }
 
-                movimientoNave.Z = movimientoZ;
             }
-
-
-            //Activar BarrelRoll 
-            //TODO: Implementar cooldown?
-            if (Input.keyDown(Key.Space))
-                this.navePrincipal.DoBarrelRoll();
-
-            if (Input.keyDown(Key.Z))
-                this.navePrincipal.DoLeft90Spin();
-
-            if (Input.keyDown(Key.X))
-                this.navePrincipal.DoRight90Spin();
-
-            //Disparar
-            //var estadoActual = sonidoLaser.getStatus();
-            var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
-            if (Input.keyDown(Key.F))
-            {
-               /*
-                if(estadoActual == TgcMp3Player.States.Open)
-                {
-                    sonidoLaser.play(false);  
-                }
-                if(estadoActual == TgcMp3Player.States.Stopped)
-                {
-                    sonidoLaser.closeFile(); 
-                    sonidoLaser.play(false);
-                }
-                */
-                this.navePrincipal.Disparar();
-                
-            }
+       
 
             navePrincipal.Update(ElapsedTime);
 
