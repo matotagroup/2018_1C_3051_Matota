@@ -209,7 +209,7 @@ namespace TGC.Group.Model
 
             var movimientoNave = TGCVector3.Empty;
 
-            if (!menu.menuPrincipal) {
+            if (!menu.estaEnMenu) {
 
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
@@ -463,8 +463,10 @@ namespace TGC.Group.Model
                 enemigo.Render();
             }
             );
-
-            menu.Render(ElapsedTime,drawer);
+            if (menu.estaEnMenu)
+            {
+                menu.Render(ElapsedTime,drawer);
+            } 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }
@@ -481,7 +483,6 @@ namespace TGC.Group.Model
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
             sonidoAmbiente.closeFile();
-            menu.Dispose();
             //sonidoLaser.closeFile();
         }
     }

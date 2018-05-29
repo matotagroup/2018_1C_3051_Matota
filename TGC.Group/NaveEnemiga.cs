@@ -22,7 +22,7 @@ namespace TGC.Group
             //this.MovementVector = naveAPerseguir.MovementVector + relativePosition;
             this.naveAPerseguir = naveAPerseguir;
             this.distancia = distanciaALaNave;
-            this.Vida = 0;
+            //this.Vida = 0;
         }
 
     
@@ -105,7 +105,7 @@ namespace TGC.Group
             this.MovementVector = naveAPerseguir.GetPosition() + posicionRelativaNueva;
             ArmaPrincipal.Move(MovementVector);
             this.OOB.Center = MovementVector;
-            this.Vida = 100;
+            //this.Vida = 100;
         }
     }
 }
