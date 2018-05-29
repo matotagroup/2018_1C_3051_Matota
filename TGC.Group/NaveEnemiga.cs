@@ -15,15 +15,17 @@ namespace TGC.Group
         private NaveEspacial naveAPerseguir;
         private float distancia;
 
-        public NaveEnemiga(string MediaDir, string modelToUse,TGCVector3 relativePosition,NaveEspacial naveAPerseguir,float distanciaALaNave) : base (MediaDir, modelToUse)
+        public NaveEnemiga(string MediaDir, string modelToUse/*,TGCVector3 relativePosition*/, int danio, NaveEspacial naveAPerseguir,float distanciaALaNave) : base (MediaDir, modelToUse, danio)
         {
             this.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.RotationVector = new TGCVector3(0, -FastMath.PI_HALF, 0);
-            this.MovementVector = naveAPerseguir.MovementVector + relativePosition;
+            //this.MovementVector = naveAPerseguir.MovementVector + relativePosition;
             this.naveAPerseguir = naveAPerseguir;
             this.distancia = distanciaALaNave;
+            this.Vida = 0;
         }
 
+    
         private bool EsIgual(float num1, float num2)
         {
             return Math.Abs(num1 - num2) < 7.5f;
@@ -73,24 +75,37 @@ namespace TGC.Group
             if (this.EstaLejos())
                 movimiento.Z = this.ObtenerDireccion(this.MovementVector.Z, naveAPerseguir.GetPosition().Z);
             else
-                movimiento.Z = 0;
+                movimiento.Z = -2f;
         }
 
-        private void Acercarse(ref TGCVector3 movimiento)
+        private bool EstaCerca()
         {
-            movimiento.Z = ObtenerDireccion(MovementVector.Z, naveAPerseguir.GetPosition().Z)*0.000001f;
+            return Math.Abs(MovementVector.Z - naveAPerseguir.GetPosition().Z) < 250f;
         }
+
+        //private void Acercarse(ref TGCVector3 movimiento)
+        //{
+        //    movimiento.Z = ObtenerDireccion(MovementVector.Z, naveAPerseguir.GetPosition().Z)*0.000001f;
+        //}
 
         public void Perseguir(float elapsedTime)
         {
             var movimiento = TGCVector3.Empty;
-            if (!this.EstaAlineado()||EstaLejos())
+            if (!this.EstaAlineado()/*||EstaLejos()*/||EstaCerca())
             {
                 this.ObtenerMovimiento(ref movimiento);
                 this.Move(movimiento * elapsedTime);
             }
            if(PuedeDisparar())
                 Disparar(naveAPerseguir.GetPosition());
+        }
+
+        public void Relocate (TGCVector3 posicionRelativaNueva)
+        {
+            this.MovementVector = naveAPerseguir.GetPosition() + posicionRelativaNueva;
+            ArmaPrincipal.Move(MovementVector);
+            this.OOB.Center = MovementVector;
+            this.Vida = 100;
         }
     }
 }

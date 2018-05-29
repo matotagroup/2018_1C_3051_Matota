@@ -46,7 +46,10 @@ namespace TGC.Group.Model
         //Scenes
         private NaveEspacial navePrincipal;
         private List<Escenario> escenarios;
-        private NaveEnemiga nave1;
+
+        //private NaveEnemiga nave1;
+
+        private List<NaveEnemiga> enemigos;
 
         private TgcSkyBox skyBox;
 
@@ -105,6 +108,9 @@ namespace TGC.Group.Model
                     D3DDevice.Instance.ZFarPlaneDistance * 1.8f);
 
             this.escenarios = new List<Escenario>();
+
+            this.enemigos = new List<NaveEnemiga>();
+
             //Crear SkyBox
             skyBox = new TgcSkyBox();
             skyBox.Center = new TGCVector3(0, 0, -2300f);
@@ -119,22 +125,33 @@ namespace TGC.Group.Model
               
             skyBox.Init();
 
-            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml");
+            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml",10);
             this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
 
-            this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,0,-200f),navePrincipal,250f);
-            nave1.ArmaPrincipal.Danio = 1;
+            //this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,0,-200f),navePrincipal,250f);
+            //nave1.ArmaPrincipal.Danio = 1;
 
             for(int i = 0; i < 5;i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
+
+            for (int i = 0; i < 3;i++)
+            {
+                enemigos.Add(new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", 5, navePrincipal, 500f));
+                enemigos[i].MovementVector = new TGCVector3(0,0,500000f);
+                enemigos[i].CreateOOB();
+
+            }
+
+
+            //enemigos[0].Relocate(new TGCVector3(0,0,-400f));
 
             //escenarios.ForEach(es => es.generarTorre(MediaDir));
             currentScene = escenarios[0];
 
             this.navePrincipal.CreateOOB();
-            this.nave1.CreateOOB();
+            //this.nave1.CreateOOB();
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
@@ -222,7 +239,7 @@ namespace TGC.Group.Model
                 {
                     if (movimientoZ > movimientoMaximoZ)
                     {
-                        movimientoZ -= factorMovimientoZ*3;
+                        movimientoZ -= factorMovimientoZ * 3;
                     }
 
                     movimientoNave.Z = movimientoZ;
@@ -235,13 +252,17 @@ namespace TGC.Group.Model
                 }
                 movimientoNave.Z = movimientoZ;
 
-                /* else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
-             {
-                  if(movimientoZ<=0)
-                  movimientoZ -= movimientoBaseZ;
-                  else
-            movimientoNave.Z = -movimientoBaseZ;
-            }*/
+                //else if (Input.keyDown(Key.Up) || Input.keyDown(Key.W))
+                //{
+                //        movimientoNave.Z = movimientoBaseZ;
+                //}
+                //else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
+                //{
+                //    if (movimientoZ <= 0)
+                //        movimientoZ -= movimientoBaseZ;
+                //    else
+                //        movimientoNave.Z = -movimientoBaseZ;
+                //}
 
                 //Activar BarrelRoll 
                 //TODO: Implementar cooldown?
@@ -275,15 +296,14 @@ namespace TGC.Group.Model
                 }
 
             }
-       
 
             navePrincipal.Update(ElapsedTime);
 
             var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
 
             torretasEnRango.ForEach(torre => { torre.disparar(navePrincipal.GetPosition()); torre.Update(); });
-            
-             
+
+
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
                 int nextSceneIndex = escenarios.FindIndex(es => es.Equals(currentScene)) + 1;
@@ -295,7 +315,16 @@ namespace TGC.Group.Model
                 currentScene.MovementVector = currentScene.GetOffsetVectorMoved();
                 currentScene.UpdateBoundingBox();
                 currentScene = escenarios[nextSceneIndex];
+
+                if (enemigos.FindAll(enemigo => enemigo.EstaViva()).Count < 3)
+                {
+                    enemigos.FindAll(enemigo => !(enemigo.EstaViva()))[0].Relocate(new TGCVector3(0, 0, -1000f));
+                }
             }
+            //if (enemigos.FindAll(enemigo => enemigo.EstaViva()).Count < 3)
+            //{
+            //    enemigos.FindAll(enemigo => !enemigo.EstaViva()).ForEach(enemigo => enemigo.Relocate(new TGCVector3(0, 0, -500f)));
+            //}
 
             if (currentScene.CheckCollision(navePrincipal))
                 navePrincipal.OOB.setRenderColor(Color.Red);
@@ -303,20 +332,35 @@ namespace TGC.Group.Model
                 navePrincipal.OOB.setRenderColor(Color.Green);
 
             //TODO: Esto tiene que cambiar, el escenario va a tener su lista de naves y ahi se tiene que manejar la colision!
-            if (navePrincipal.CheckIfMyShotsCollided(nave1))
-                nave1.Scene.BoundingBox.setRenderColor(Color.Red);
-
-            if (nave1.CheckIfMyShotsCollided(navePrincipal))
-                navePrincipal.Daniar(nave1.ArmaPrincipal.Danio);
+            enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
+              {
+                  enemigo.UpdateBoundingBox();
+                  if (navePrincipal.CheckIfMyShotsCollided(enemigo))
+                  {
+                      enemigo.Daniar(navePrincipal.ArmaPrincipal.Danio);
+                      
+                  }
+                  if (enemigo.CheckIfMyShotsCollided(navePrincipal))
+                  {
+                      navePrincipal.Daniar(enemigo.ArmaPrincipal.Danio);
+                  }
+              }
+            );
 
                 //Actualiza la matrix de movimiento de la nave.
-                this.navePrincipal.Move(movimientoNave * ElapsedTime);
+            this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update();
 
-            this.nave1.Perseguir(ElapsedTime);
-            this.nave1.Update();
+            enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
+            {
+                enemigo.Perseguir(ElapsedTime);
+                enemigo.Update();
+            }
+            );
+
             if (Input.keyDown(Key.H))
-                nave1.Move(new TGCVector3(-0.1f,0,-0.1f));
+                enemigos[0].Move(new TGCVector3(-0.1f,0,-0.1f));
+
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
 
             //this.skyBox.Center += new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000;
@@ -382,6 +426,9 @@ namespace TGC.Group.Model
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMin), 0, 105, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMax), 0, 115, Color.White);
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
+            DrawText.drawText("Vida del pelotudo: " + enemigos[0].Vida, 0, 190, Color.White);
+            DrawText.drawText("Vida del pelotudo: " + enemigos[1].Vida, 0, 230, Color.White);
+            DrawText.drawText("Vida del pelotudo: " + enemigos[2].Vida, 0, 270, Color.White);
 
 
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
@@ -394,9 +441,13 @@ namespace TGC.Group.Model
          
             this.navePrincipal.Render();
 
-            this.nave1.TransformMatix = nave1.ScaleFactor * nave1.RotationMatrix() * nave1.MovementMatrix();
+            enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
+            {
+                enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
+                enemigo.Render();
+            }
+            );
 
-            this.nave1.Render();
             menu.Render(ElapsedTime,drawer);
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
@@ -410,7 +461,7 @@ namespace TGC.Group.Model
         public override void Dispose()
         {
             this.navePrincipal.Scene.DisposeAll();
-            this.nave1.Scene.DisposeAll();
+            this.enemigos.ForEach(enemigo => enemigo.Scene.DisposeAll());
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
             sonidoAmbiente.closeFile();

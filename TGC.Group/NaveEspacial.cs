@@ -29,31 +29,31 @@ namespace TGC.Group
         public Arma ArmaPrincipal { get; private set; }
         private TGCVector3 shipShotSize = new TGCVector3(0.4f, 0.3f, 8f);
 
-        public int Vida { get; private set; }  = 100;
+        public int Vida { get; protected set; }  = 100;
 
         public TgcBoundingOrientedBox OOB
         {
             private set; get;
         }
 
-        public NaveEspacial(string MediaDir, string modelToUse)
+        public NaveEspacial(string MediaDir, string modelToUse, int danio)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
             this.TransformMatix = TGCMatrix.Identity;
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
             this.MovementVector = TGCVector3.Empty;
-            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, 10, this.GetPosition());
+            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, danio, this.GetPosition());
 
             this.ActionOnNave((mesh) => {
                 mesh.AutoTransform = false; //Desactivar el autotransform para poder usar el mesh.transform.
             });
         }
 
-        public NaveEspacial(string MediaDir, string modelToUse, int danio): this(MediaDir, modelToUse)
-        {
-            this.ArmaPrincipal.Danio = danio;
-        }
+        //public NaveEspacial(string MediaDir, string modelToUse, int danio): this(MediaDir, modelToUse)
+        //{
+        //    this.ArmaPrincipal.Danio = danio;
+        //}
 
         public void Daniar(int cantidadDanio)
         {
@@ -263,6 +263,11 @@ namespace TGC.Group
             this.ActionOnNave((mesh) => {
                 mesh.updateBoundingBox();
             });
+        }
+
+        public bool EstaViva()
+        {
+            return Vida > 0;
         }
     }
 }

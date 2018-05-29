@@ -22,7 +22,7 @@ namespace TGC.Group
         private TGCVector3 MovementDirection;
 
 
-        private const float velocidadDisparo = -5f;
+        private const float velocidadDisparo = 75f;
 
         public TgcBoundingOrientedBox OOB
         {
@@ -59,7 +59,7 @@ namespace TGC.Group
             modelo = TGCBox.fromSize(size, color);
             modelo.AutoTransform = true;
             modelo.Position = startPosition;
-            MovementDirection = TGCVector3.Normalize(startPosition-targetPosition);
+            MovementDirection = TGCVector3.Normalize(targetPosition- startPosition);
             modelo.Rotation = new TGCVector3(ObtenerRotacionX(new TGCVector3(0, 0, 1), MovementDirection), ObtenerRotacionY(new TGCVector3(0, 0, 1), MovementDirection),0);
             this.OOB = TgcBoundingOrientedBox.computeFromAABB(modelo.BoundingBox);
             //this.OOB.move(this.MovementDirection);
@@ -79,7 +79,7 @@ namespace TGC.Group
             }
 
             OOB.move(MovementDirection * velocidadDisparo);
-            modelo.Move(MovementDirection*velocidadDisparo);
+            modelo.Move(MovementDirection * velocidadDisparo);
         }
 
         public bool HayColision(NaveEspacial nave)
