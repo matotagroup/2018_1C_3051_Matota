@@ -51,19 +51,19 @@ public class Torre
         arma.Move(this.posicion+posicionInicialArma);
     }
 
-    public float distanciaObjetivo(TGCVector3 posicionObjetivo)
+    public float DistanciaObjetivo(TGCVector3 posicionObjetivo)
     {
         return (this.posicion - posicionObjetivo).Length();
     }
 
-    public void disparar(TGCVector3 targetPosition)
+    public void Disparar(TGCVector3 targetPosition)
     {
         this.arma.Disparar(targetPosition);
     }
 
-    public bool enRango(TGCVector3 targetPosition)
+    public bool EnRango(TGCVector3 targetPosition)
     {
-        return this.distanciaObjetivo(targetPosition) <= rangoMaximo;
+        return this.DistanciaObjetivo(targetPosition) <= rangoMaximo;
     }
     public void ActionOnTorre(System.Action<TgcMesh> action)
     {
@@ -73,14 +73,17 @@ public class Torre
     {
         this.arma.Update();
     }
-    public void Render()
+    public void Render(bool renderBoundingBox = false)
     {
         this.ActionOnTorre(mesh => {
             mesh.Transform = TGCMatrix.Scaling(ScaleFactor) * TGCMatrix.RotationYawPitchRoll(rotacion.Y, rotacion.X, rotacion.Z) * TGCMatrix.Translation(posicion);
             mesh.Render();
         });
+
         this.Scene.BoundingBox.transform(Scene.Meshes[0].Transform);
-        this.Scene.BoundingBox.Render();
+
+        if(renderBoundingBox)
+            this.Scene.BoundingBox.Render();
         this.arma.Render();
     }
     public void Dispose()

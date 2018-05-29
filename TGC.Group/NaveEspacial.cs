@@ -69,9 +69,6 @@ namespace TGC.Group
         {
             if(!this.shouldBarrelRoll)
                 this.Vida -= cantidadDanio;
-
-            //if(this.vida <= 0)
-            //Hacer algo cuando muere una nave!
         }
 
         public void Disparar()
@@ -242,7 +239,7 @@ namespace TGC.Group
             this.ArmaPrincipal.Update();
         }
 
-        public int pierdeVidas(int cantVidas)
+        public int PierdeVidas(int cantVidas)
         {
             Vida = cantVidas;
 
@@ -292,6 +289,14 @@ namespace TGC.Group
         public bool EstaViva()
         {
             return Vida > 0;
+        }
+
+        /// <summary>
+        /// Mata a la nave, es decir pone su vida en 0.
+        /// </summary>
+        public void Morir()
+        {
+            Vida = 0;
         }
     }
 }
