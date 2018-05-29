@@ -25,7 +25,7 @@ namespace TGC.Group
         public TGCVector3 MovementVector { get; set; }
         public int SceneNumber { get; private set; } = 0;
         public List<Torre> torres;
-       
+
         public static readonly TGCVector3 offsetEscenarios = new TGCVector3(0, 0, -8000f);
         public static readonly TGCVector3 defaultScale = new TGCVector3(50f, 200f, 80f);
         private static List<TGCVector4> posicionesTorres = new List<TGCVector4> {
@@ -47,8 +47,6 @@ namespace TGC.Group
             { TGCBox.fromExtremes(new TGCVector3(-2223, -1195, 2536),   new TGCVector3(-2740, 100, 2200))  },
              //PISO
             { TGCBox.fromExtremes(new TGCVector3(-2223, -3000, 4000),   new TGCVector3(2700,-2042,-9000)) },
-            //TECHO
-            { TGCBox.fromExtremes(new TGCVector3(-2223, 200,4000),   new TGCVector3(2700,400,-9000)) },
 
             //DERECHA
             { TGCBox.fromExtremes(new TGCVector3 (964, -2042,4000) , new TGCVector3 (-2223,-1100,-9000)) },
@@ -58,6 +56,15 @@ namespace TGC.Group
 
             //BB DE PUENTE
             { TGCBox.fromExtremes(new TGCVector3  (1544, -1537, -2873),  new TGCVector3 (830,-1255,-2974)) },
+        };
+
+        private static readonly Dictionary<TGCBox, TGCVector3> notDeathfulBB = new Dictionary<TGCBox, TGCVector3> {
+            //TECHO
+            { TGCBox.fromExtremes(new TGCVector3(3508, 200,4000),   new TGCVector3(-3050,400,-9000)) , new TGCVector3(0,1,0) },
+            //Izq
+            { TGCBox.fromExtremes(new TGCVector3(3508,-2770,-4000),  new TGCVector3(3550,2770,4000)), new TGCVector3(1,0,0)  },
+            //Der
+            { TGCBox.fromExtremes(new TGCVector3  (-3050,-2770,-4000),  new TGCVector3 (-3008,2770,4000)), new TGCVector3(1,0,0)  },
         };
 
         private static readonly Dictionary<TgcBoundingAxisAlignBox, TGCVector3> boundingBoxes = new Dictionary<TgcBoundingAxisAlignBox, TGCVector3>
@@ -83,7 +90,9 @@ namespace TGC.Group
 
         public Escenario(string MediaDir, string modelToUse)
         {
-            this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + modelToUse, MediaDir + "XWing/");
+            TgcSceneLoader loader = new TgcSceneLoader();
+            this.Scene = loader.loadSceneFromFile(MediaDir + modelToUse, MediaDir + "XWing/");
+
             this.TransformMatix = TGCMatrix.Identity;
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
@@ -140,7 +149,6 @@ namespace TGC.Group
 
         public void Render(bool renderBoundingBox = false)
         {
-
             this.ForEachMesh((mesh) => {
                 mesh.Transform = TransformMatix;
                 mesh.Render();
@@ -149,11 +157,15 @@ namespace TGC.Group
             });
 
             this.torres.ForEach(torre => torre.Render());
-            boundingBoxesTowers.ForEach(m => m.BoundingBox.Render());
 
-            foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
-                entry.Key.Render();
-
+                boundingBoxesTowers.ForEach(m => m.BoundingBox.Render());
+            {
+                foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
+                    entry.Key.Render();
+                foreach (KeyValuePair<TGCBox, TGCVector3> entry in notDeathfulBB)
+                    entry.Key.BoundingBox.Render();
+            }
+            
         }
 
         public TGCMatrix RotationMatrix()
@@ -174,6 +186,21 @@ namespace TGC.Group
         public void ForEachMesh(System.Action<TgcMesh> action)
         {
             this.Scene.Meshes.ForEach(action);
+        }
+
+        public TGCVector3 CheckLimits(NaveEspacial nave, TGCVector3 movement)
+        {
+            TGCVector3 counterMovement = TGCVector3.Empty;
+
+            foreach (KeyValuePair<TGCBox, TGCVector3> entry in notDeathfulBB)
+            {
+                entry.Key.Transform = TGCMatrix.Translation(this.GetOffsetVectorMoved());
+                entry.Key.BoundingBox.transform(entry.Key.Transform);
+                if (TgcCollisionUtils.testObbAABB(nave.OOB, entry.Key.BoundingBox))
+                    counterMovement += new TGCVector3(movement.X * entry.Value.X, movement.Y * entry.Value.Y, 0);
+            }
+
+            return counterMovement;
         }
 
         public bool CheckCollision(NaveEspacial nave)

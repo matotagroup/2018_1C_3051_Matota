@@ -50,7 +50,16 @@ namespace TGC.Group
         public bool CheckShots(NaveEspacial nave)
         {
             var cols = disparos.FindAll(t => t.HayColision(nave)).Select( t => disparos.IndexOf(t)).ToList();
-            cols.ForEach(e => disparos.RemoveAt(e));
+            cols.ForEach(e => {
+                try
+                {
+                    disparos.RemoveAt(e);
+                } catch (IndexOutOfRangeException)
+                {
+                    //El disparo ya habia sido removido
+                }
+            });
+           
             return cols.Count() > 0;
         }
 

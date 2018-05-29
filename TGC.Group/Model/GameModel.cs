@@ -244,13 +244,23 @@ namespace TGC.Group.Model
 
                     movimientoNave.Z = movimientoZ;
                 }
+
+
+                if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
+                {
+                    if (movimientoZ < movimientoBaseZ)
+                    {
+                        movimientoZ += factorMovimientoZ;
+                    }
+                    movimientoNave.Z = movimientoZ;
+                }
                 //Movernos adelante y atras, sobre el eje Z.
 
-                if (movimientoZ < movimientoBaseZ)
-                {
-                    movimientoZ += factorMovimientoZ;
-                }
-                movimientoNave.Z = movimientoZ;
+                //if (movimientoZ < movimientoBaseZ)
+                //{
+                //    movimientoZ += factorMovimientoZ;
+                //}
+                //movimientoNave.Z = movimientoZ;
 
                 //else if (Input.keyDown(Key.Up) || Input.keyDown(Key.W))
                 //{
@@ -278,7 +288,7 @@ namespace TGC.Group.Model
                 //Disparar
                 //var estadoActual = sonidoLaser.getStatus();
                 var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
-                if (Input.keyDown(Key.F))
+                if (Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
                 {
                     /*
                      if(estadoActual == TgcMp3Player.States.Open)
@@ -291,8 +301,7 @@ namespace TGC.Group.Model
                          sonidoLaser.play(false);
                      }
                      */
-                    this.navePrincipal.Disparar();
-
+                    this.navePrincipal.Disparar( new TGCVector3( ( ( ( D3DDevice.Instance.Width / 2 ) - Input.Xpos ) * 10 ) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, -1 ) );
                 }
 
             }
@@ -347,7 +356,11 @@ namespace TGC.Group.Model
               }
             );
 
-                //Actualiza la matrix de movimiento de la nave.
+
+            movimientoNave -= TGCVector3.Multiply(currentScene.CheckLimits(navePrincipal, movimientoNave), 7);
+
+            //Actualiza la matrix de movimiento de la nave.
+
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update();
 
@@ -425,12 +438,15 @@ namespace TGC.Group.Model
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.MovementVector), 0, 85, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMin), 0, 105, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMax), 0, 115, Color.White);
+
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
-            DrawText.drawText("Vida del pelotudo: " + enemigos[0].Vida, 0, 190, Color.White);
-            DrawText.drawText("Vida del pelotudo: " + enemigos[1].Vida, 0, 230, Color.White);
-            DrawText.drawText("Vida del pelotudo: " + enemigos[2].Vida, 0, 270, Color.White);
+            DrawText.drawText("Vida del enemigo 1: " + enemigos[0].Vida, 0, 190, Color.White);
+            DrawText.drawText("Vida del enemigo 2: " + enemigos[1].Vida, 0, 230, Color.White);
+            DrawText.drawText("Vida del enemigo 3: " + enemigos[2].Vida, 0, 270, Color.White);
 
 
+            DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
+            
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
 
             this.escenarios.ForEach((es) => {

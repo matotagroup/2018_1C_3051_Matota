@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -29,7 +30,13 @@ namespace TGC.Group
         public Arma ArmaPrincipal { get; private set; }
         private TGCVector3 shipShotSize = new TGCVector3(0.4f, 0.3f, 8f);
 
-        public int Vida { get; protected set; }  = 100;
+
+        private Stopwatch coolDownMovimientos = null;
+
+
+        private readonly float COOLDOWNMOVIMIENTOS = 2000;
+
+        public int Vida { get; private set; }  = 100;
 
         public TgcBoundingOrientedBox OOB
         {
@@ -43,7 +50,10 @@ namespace TGC.Group
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
             this.MovementVector = TGCVector3.Empty;
+
             this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, danio, this.GetPosition());
+            this.coolDownMovimientos = Stopwatch.StartNew();
+
 
             this.ActionOnNave((mesh) => {
                 mesh.AutoTransform = false; //Desactivar el autotransform para poder usar el mesh.transform.
@@ -57,13 +67,13 @@ namespace TGC.Group
 
         public void Daniar(int cantidadDanio)
         {
-            this.Vida -= cantidadDanio;
+            if(!this.shouldBarrelRoll)
+                this.Vida -= cantidadDanio;
 
             //if(this.vida <= 0)
             //Hacer algo cuando muere una nave!
         }
 
-        // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar()
         {
             this.ArmaPrincipal.Disparar(this.MovementVector-new TGCVector3(0f,0f,1f));
@@ -116,12 +126,22 @@ namespace TGC.Group
 
         public void DoBarrelRoll()
         {
-            this.shouldBarrelRoll = true;
+            OnCooldown( () => this.shouldBarrelRoll = true );
+        }
+
+        private void OnCooldown(Action todo)
+        {
+
+            if (coolDownMovimientos.Elapsed.TotalMilliseconds >= COOLDOWNMOVIMIENTOS)
+            {
+                todo();
+                coolDownMovimientos.Restart();
+            }
         }
 
         private void PerformLeft90Spin(float ElapsedTime)
         {
-
+            
             if (stopSpinning)
             {
                 if (this.RotationVector.X < 0)
@@ -182,16 +202,20 @@ namespace TGC.Group
 
         public void DoLeft90Spin()
         {
-            this.shouldLeft90Spin = true;
-            this.shouldRight90Spin = false;
-            this.stopSpinning = false;
+            OnCooldown(() => {
+                this.shouldLeft90Spin = true;
+                this.shouldRight90Spin = false;
+                this.stopSpinning = false;
+            });
         }
 
         public void DoRight90Spin()
         {
-            this.shouldRight90Spin = true;
-            this.shouldLeft90Spin = false;
-            this.stopSpinning = false;
+            OnCooldown(() => {
+                this.shouldRight90Spin = true;
+                this.shouldLeft90Spin = false;
+                this.stopSpinning = false;
+            });
         }
 
         public void Rotate(TGCVector3 rotation, bool updateOOB = true)
