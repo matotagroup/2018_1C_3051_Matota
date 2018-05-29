@@ -222,6 +222,13 @@ namespace TGC.Group
             this.RotationVector = this.RotationVector + rotation;
         }
 
+        public void MoveTo(TGCVector3 newAbsolutePosition)
+        {
+            this.OOB.Center = newAbsolutePosition;
+            this.MovementVector = newAbsolutePosition;
+            ArmaPrincipal.Move(this.GetPosition());
+        }
+
         public void Move(TGCVector3 newOffset)
         {
             this.OOB.move(newOffset * speed);
@@ -234,10 +241,6 @@ namespace TGC.Group
             return MovementVector;
         }
 
-        public void Update()
-        {
-            this.ArmaPrincipal.Update();
-        }
 
         public int PierdeVidas(int cantVidas)
         {
@@ -259,6 +262,9 @@ namespace TGC.Group
                 this.PerformLeft90Spin(ElapsedTime);
             else if (shouldRight90Spin)
                 this.PerformRight90Spin(ElapsedTime);
+
+            this.ArmaPrincipal.Update();
+
         }
 
         public void Render(bool renderBoundingBox = false)
@@ -297,6 +303,11 @@ namespace TGC.Group
         public void Morir()
         {
             Vida = 0;
+        }
+
+        public void Revivir()
+        {
+            Vida = 100;
         }
     }
 }

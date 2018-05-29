@@ -168,10 +168,14 @@ namespace TGC.Group.Model
             Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
 
             //Cargar el MP3 sonido abiente
-            sonidoAmbiente = new TgcMp3Player();
-            sonidoAmbiente.FileName = MediaDir + "Music\\StarWarsMusic.mp3";
-            sonidoMenu = new TgcMp3Player();
-            sonidoMenu.FileName = MediaDir + "Music\\musica_menu.mp3";
+            sonidoAmbiente = new TgcMp3Player
+            {
+                FileName = MediaDir + "Music\\StarWarsMusic.mp3"
+            };
+            sonidoMenu = new TgcMp3Player
+            {
+                FileName = MediaDir + "Music\\musica_menu.mp3"
+            };
 
             sol = TGCBox.fromSize(new TGCVector3(0,-500,0), new TGCVector3(5, 5, 5), Color.Yellow);
             sol.AutoTransform = true;
@@ -192,6 +196,11 @@ namespace TGC.Group.Model
             drawer = new Drawer2D();
         }
 
+        public void InifinityChecker()
+        {
+
+        }
+
         /// <summary>
         ///     Se llama en cada frame.
         ///     Se debe escribir toda la lógica de computo del modelo, así como también verificar entradas del usuario y reacciones
@@ -208,40 +217,34 @@ namespace TGC.Group.Model
                 BoundingBox = !BoundingBox;
             }*/
 
+            if(menu.estaEnMenu)
+            {
+                menu.Update(ElapsedTime);
+                PostUpdate();
+                return;
+            }
+
             var movimientoNave = TGCVector3.Empty;
 
             if (!menu.estaEnMenu) {
 
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
-                    if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = 1; }
-                    else { DrawText.drawText("Tu vida: " + navePrincipal.PierdeVidas(0), 0, 150, Color.White); }
-
-
+                    movimientoNave.X = 1;
                 else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
-                    if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = -1; }
-                    else { DrawText.drawText("Tu vida: " + navePrincipal.PierdeVidas(0), 0, 150, Color.White); }
-
+                    movimientoNave.X = -1;
 
                 //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
                 if (Input.keyDown(Key.E))
-                    if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.Y = 1; }
-                    else { movimientoNave.Y = -3; }
-
-
+                    movimientoNave.Y = 1;
                 else if (Input.keyDown(Key.LeftControl))
-                {
-                    if (!currentScene.CheckCollision(navePrincipal)) movimientoNave.Y = -1;
-                    else { movimientoNave.Y = 3; }
-                }
+                    movimientoNave.Y = -1;
 
                 //boost de velocidad con shift
                 if (Input.keyDown(Key.LeftShift))
                 {
                     if (movimientoZ > movimientoMaximoZ)
-                    {
                         movimientoZ -= factorMovimientoZ * 3;
-                    }
 
                     movimientoNave.Z = movimientoZ;
                 }
@@ -250,9 +253,8 @@ namespace TGC.Group.Model
                 if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
                 {
                     if (movimientoZ < movimientoBaseZ)
-                    {
                         movimientoZ += factorMovimientoZ;
-                    }
+
                     movimientoNave.Z = movimientoZ;
                 }
                 //Movernos adelante y atras, sobre el eje Z.
@@ -275,8 +277,7 @@ namespace TGC.Group.Model
                 //        movimientoNave.Z = -movimientoBaseZ;
                 //}
 
-                //Activar BarrelRoll 
-                //TODO: Implementar cooldown?
+                //Activar rotaciones especiales
                 if (Input.keyDown(Key.Space))
                     this.navePrincipal.DoBarrelRoll();
 
@@ -312,9 +313,6 @@ namespace TGC.Group.Model
                 torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(); });
             }
 
-
-            navePrincipal.Update(ElapsedTime);
-
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
                 int nextSceneIndex = escenarios.FindIndex(es => es.Equals(currentScene)) + 1;
@@ -328,69 +326,60 @@ namespace TGC.Group.Model
                 currentScene = escenarios[nextSceneIndex];
 
                 if (enemigos.FindAll(enemigo => enemigo.EstaViva()&&enemigo.EnemigoEstaAdelante()).Count < 3)
-                {
                     enemigos.FindAll(enemigo => !enemigo.EstaViva()||!enemigo.EnemigoEstaAdelante())[0].Relocate(new TGCVector3(200f, 200f, -1000f));
-                }
             }
 
-
-            var naves = enemigos.Select(e => (NaveEspacial)e).ToList();
-            naves.Add(navePrincipal);
-            naves.ForEach(nave => {
-
-                //Colision de todas las naves contra el escenario.
-                if (currentScene.CheckCollision(nave))
-                    nave.Morir();
-
-                //Colision entre naves.
-                naves.FindAll(n => n != nave).ForEach(n => {
-                    if (TgcCollisionUtils.testObbObb(nave.OOB, n.OOB))
-                    {
-                        nave.Morir();
-                        n.Morir();
-                    }
-                });
-            });
-
-            //TODO: Esto tiene que cambiar, el escenario va a tener su lista de naves y ahi se tiene que manejar la colision!
-            enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
-              {
-                  if (navePrincipal.CheckIfMyShotsCollided(enemigo))
-                  {
-                      enemigo.Daniar(navePrincipal.ArmaPrincipal.Danio);
-                      
-                  }
-                  if (enemigo.CheckIfMyShotsCollided(navePrincipal))
-                  {
-                      navePrincipal.Daniar(enemigo.ArmaPrincipal.Danio);
-                  }
-              }
-            );
-
-
+            // No permitir que se salga de los limites, el salto que hace para volver es medio brusco, se podria atenuar.
             movimientoNave -= TGCVector3.Multiply(currentScene.CheckLimits(navePrincipal, movimientoNave), 7);
 
             //Actualiza la matrix de movimiento de la nave.
 
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
-            this.navePrincipal.Update();
+            this.navePrincipal.Update(ElapsedTime);
 
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
             {
                 enemigo.Perseguir(ElapsedTime);
-                enemigo.Update();
+                enemigo.Update(ElapsedTime);
             }
             );
 
+            var naves = enemigos.Select(e => (NaveEspacial)e).ToList();
+            naves.Add(navePrincipal);
+            naves.ForEach(naveActual => {
+
+                //Colision de todas las naves contra el escenario.
+                if (currentScene.CheckCollision(naveActual))
+                    naveActual.Morir();
+
+                naves.FindAll(n => n != naveActual).ForEach(otraNave => {
+
+                    //Colision fisica entre naves.
+                    if (TgcCollisionUtils.testObbObb(naveActual.OOB, otraNave.OOB))
+                    {
+                        naveActual.Morir();
+                        otraNave.Morir();
+                    }
+
+                    //Colision de disparos
+                    if (naveActual.CheckIfMyShotsCollided(otraNave))
+                        otraNave.Daniar(naveActual.ArmaPrincipal.Danio);
+                });
+            });
+
+            if (!navePrincipal.EstaViva())
+            {
+                movimientoNave = TGCVector3.Empty;
+                this.navePrincipal.MoveTo(new TGCVector3(1200f, -1100f, 4000f) + currentScene.GetOffsetVectorMoved());
+                this.skyBox.Center = new TGCVector3(0, 0, -2300f) + currentScene.GetOffsetVectorMoved();
+                this.navePrincipal.Revivir();
+                this.menu.estaEnMenu = true;
+            }
+
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
-
-            //this.skyBox.Center += new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000;
-            //this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
-
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
-            menu.Update(ElapsedTime);
             PostUpdate();
         }
 
@@ -451,6 +440,7 @@ namespace TGC.Group.Model
             DrawText.drawText("Vida del enemigo 1: " + enemigos[0].Vida, 0, 190, Color.White);
             DrawText.drawText("Vida del enemigo 2: " + enemigos[1].Vida, 0, 230, Color.White);
             DrawText.drawText("Vida del enemigo 3: " + enemigos[2].Vida, 0, 270, Color.White);
+            DrawText.drawText("Menu: " + menu.estaEnMenu, 0, 370, Color.White);
 
 
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
