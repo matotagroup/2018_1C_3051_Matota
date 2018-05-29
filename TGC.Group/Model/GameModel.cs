@@ -174,8 +174,6 @@ namespace TGC.Group.Model
             drawer = new Drawer2D();
         }
 
-        TGCVector3 temp;
-
         /// <summary>
         ///     Se llama en cada frame.
         ///     Se debe escribir toda la lógica de computo del modelo, así como también verificar entradas del usuario y reacciones
@@ -230,6 +228,7 @@ namespace TGC.Group.Model
                     movimientoNave.Z = movimientoZ;
                 }
 
+
                 if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
                 {
                     if (movimientoZ < movimientoBaseZ)
@@ -268,7 +267,7 @@ namespace TGC.Group.Model
                 //Disparar
                 //var estadoActual = sonidoLaser.getStatus();
                 var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
-                if (Input.keyDown(Key.F))
+                if (Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
                 {
                     /*
                      if(estadoActual == TgcMp3Player.States.Open)
@@ -281,8 +280,7 @@ namespace TGC.Group.Model
                          sonidoLaser.play(false);
                      }
                      */
-                    this.navePrincipal.Disparar();
-
+                    this.navePrincipal.Disparar( new TGCVector3( ( ( ( D3DDevice.Instance.Width / 2 ) - Input.Xpos ) * 10 ) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, -1 ) );
                 }
 
             }
@@ -320,8 +318,6 @@ namespace TGC.Group.Model
             if (nave1.CheckIfMyShotsCollided(navePrincipal))
                 navePrincipal.Daniar(nave1.ArmaPrincipal.Danio);
 
-
-            temp = currentScene.CheckLimits(navePrincipal, movimientoNave);
             movimientoNave -= TGCVector3.Multiply(currentScene.CheckLimits(navePrincipal, movimientoNave), 7);
 
             //Actualiza la matrix de movimiento de la nave.
@@ -396,10 +392,9 @@ namespace TGC.Group.Model
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.MovementVector), 0, 85, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMin), 0, 105, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.currentScene.Scene.BoundingBox.PMax), 0, 115, Color.White);
-            DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(temp), 0, 200, Color.White);
+
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
-
-
+            
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
 
             this.escenarios.ForEach((es) => {

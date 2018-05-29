@@ -63,7 +63,6 @@ namespace TGC.Group
             //Hacer algo cuando muere una nave!
         }
 
-        // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar()
         {
             this.ArmaPrincipal.Disparar(this.MovementVector-new TGCVector3(0f,0f,1f));
