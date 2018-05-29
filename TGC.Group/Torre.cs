@@ -15,7 +15,7 @@ public class Torre
     public TGCVector3 posicion;
     public TGCVector3 rotacion;
 
-    private Arma arma;
+    public Arma arma;
     private TGCVector3 turretShotSize = new TGCVector3(3f, 3f, 8f);
     private float rangoMaximo = 5000f;
     private TGCVector3 posicionInicialArma;
@@ -29,7 +29,7 @@ public class Torre
         this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelosDisponibles[new Random().Next(modelosDisponibles.Count)], MediaDir + "XWing/");
 
         ScaleFactor = new TGCVector3(5f, 5f, 5f);
-        posicionArma.TryGetValue(this.Scene.SceneName, out posicionInicialArma);
+        posicionArma.TryGetValue(new Tuple<string,float>(this.Scene.SceneName,0), out posicionInicialArma);
         arma = new Arma(turretShotSize, Color.Green, 1, 350, posicionInicialArma);
 
         this.ActionOnTorre(mesh => {
@@ -37,17 +37,21 @@ public class Torre
         });
     }
 
-    private static readonly Dictionary<string, TGCVector3> posicionArma = new Dictionary<string, TGCVector3>
+    private static readonly Dictionary<Tuple<string,float>, TGCVector3> posicionArma = new Dictionary<Tuple<string,float>, TGCVector3>
     {
-        { "torreta2", new TGCVector3(-150f,200f,0)},
-        { "Turbolaser", new TGCVector3(-360f,240f,75f) }
+        { new Tuple<string, float> ("torreta2",0), new TGCVector3(150f,200f,0) },
+        { new Tuple<string, float> ("torreta2",FastMath.PI), new TGCVector3(-150f,200f,0) },
+        { new Tuple<string, float> ("Turbolaser",0), new TGCVector3(365f,242f,60f) },
+        { new Tuple<string, float> ("Turbolaser",FastMath.PI), new TGCVector3(-358f,240f,68f) }
     };
+
+
 
     public void Relocate(TGCVector4 newPosition)
     {
         this.posicion = new TGCVector3(newPosition.X, newPosition.Y, newPosition.Z);
         this.rotacion = new TGCVector3(0, newPosition.W, 0);
-        posicionArma.TryGetValue(this.Scene.SceneName, out posicionInicialArma);
+        posicionArma.TryGetValue(new Tuple<string,float>(this.Scene.SceneName,newPosition.W), out posicionInicialArma);
         arma.Move(this.posicion+posicionInicialArma);
     }
 
@@ -85,6 +89,10 @@ public class Torre
         if(renderBoundingBox)
             this.Scene.BoundingBox.Render();
         this.arma.Render();
+    }
+    public bool CheckIfMyShotsCollided(NaveEspacial otraNave)
+    {
+        return arma.CheckShots(otraNave);
     }
     public void Dispose()
     {

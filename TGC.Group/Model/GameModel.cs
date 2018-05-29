@@ -69,7 +69,7 @@ namespace TGC.Group.Model
         private Menu menu;
         private Drawer2D drawer;
 
-
+        public Torre porongadeprueba;
         /// <summary>
         /// Representa el scene donde actualmente esta el jugador.
         /// </summary>
@@ -99,6 +99,8 @@ namespace TGC.Group.Model
         public override void Init()
         {
           
+       
+
 
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
@@ -144,6 +146,10 @@ namespace TGC.Group.Model
                 enemigos[i].CreateOOB();
 
             }
+
+            var ub = navePrincipal.GetPosition() + new TGCVector3(0, 0, -1000f);
+            porongadeprueba = new Torre(MediaDir);
+            porongadeprueba.Relocate(new TGCVector4(ub.X, ub.Y, ub.Z, 0));
 
 
             //enemigos[0].Relocate(new TGCVector3(0,0,-400f));
@@ -343,8 +349,7 @@ namespace TGC.Group.Model
                 enemigo.Update(ElapsedTime);
             }
             );
-
-            var naves = enemigos.Select(e => (NaveEspacial)e).ToList();
+            var naves = enemigos.FindAll(enemigo=>enemigo.EstaViva()).Select(e => (NaveEspacial)e).ToList();
             naves.Add(navePrincipal);
             naves.ForEach(naveActual => {
 
@@ -352,7 +357,8 @@ namespace TGC.Group.Model
                 if (currentScene.CheckCollision(naveActual))
                     naveActual.Morir();
 
-                naves.FindAll(n => n != naveActual).ForEach(otraNave => {
+                naves.FindAll(n => n != naveActual).ForEach(otraNave =>
+                {
 
                     //Colision fisica entre naves.
                     if (TgcCollisionUtils.testObbObb(naveActual.OOB, otraNave.OOB))
@@ -365,6 +371,14 @@ namespace TGC.Group.Model
                     if (naveActual.CheckIfMyShotsCollided(otraNave))
                         otraNave.Daniar(naveActual.ArmaPrincipal.Danio);
                 });
+                    currentScene.TorresEnRango(navePrincipal.GetPosition()).ForEach(torre =>
+                    {
+                        if (torre.CheckIfMyShotsCollided(naveActual))
+                        {
+                            naveActual.Daniar(torre.arma.Danio);
+                        }
+                    });
+            
             });
 
             if (!navePrincipal.EstaViva())
@@ -452,7 +466,7 @@ namespace TGC.Group.Model
                 es.Render();
             });
 
-         
+            porongadeprueba.Render();
             this.navePrincipal.Render();
 
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>

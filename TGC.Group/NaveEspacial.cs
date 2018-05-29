@@ -199,20 +199,16 @@ namespace TGC.Group
 
         public void DoLeft90Spin()
         {
-            OnCooldown(() => {
                 this.shouldLeft90Spin = true;
                 this.shouldRight90Spin = false;
                 this.stopSpinning = false;
-            });
         }
 
         public void DoRight90Spin()
         {
-            OnCooldown(() => {
                 this.shouldRight90Spin = true;
                 this.shouldLeft90Spin = false;
                 this.stopSpinning = false;
-            });
         }
 
         public void Rotate(TGCVector3 rotation, bool updateOOB = true)
