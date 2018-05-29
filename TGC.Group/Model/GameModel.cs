@@ -18,6 +18,7 @@ using TGC.Core.Shaders;
 using Microsoft.DirectX.Direct3D;
 using TGC.Group.Model.UtilsParaGUI;
 using TGC.Group.Form;
+using System.Linq;
 
 namespace TGC.Group.Model
 {
@@ -209,17 +210,17 @@ namespace TGC.Group.Model
 
             var movimientoNave = TGCVector3.Empty;
 
-            if (!menu.menuPrincipal) {
+            if (!menu.estaEnMenu) {
 
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
                     if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = 1; }
-                    else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
+                    else { DrawText.drawText("Tu vida: " + navePrincipal.PierdeVidas(0), 0, 150, Color.White); }
 
 
                 else if (Input.keyDown(Key.Right) || Input.keyDown(Key.D))
                     if (!currentScene.CheckCollision(navePrincipal)) { movimientoNave.X = -1; }
-                    else { DrawText.drawText("Tu vida: " + navePrincipal.pierdeVidas(0), 0, 150, Color.White); }
+                    else { DrawText.drawText("Tu vida: " + navePrincipal.PierdeVidas(0), 0, 150, Color.White); }
 
 
                 //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
@@ -301,19 +302,18 @@ namespace TGC.Group.Model
                          sonidoLaser.play(false);
                      }
                      */
-                    this.navePrincipal.Disparar( new TGCVector3( ( ( ( D3DDevice.Instance.Width / 2 ) - Input.Xpos ) * 10 ) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, -1 ) );
+                    this.navePrincipal.Disparar( new TGCVector3( ( ( ( D3DDevice.Instance.Width / 2 ) - Input.Xpos ) * 10 ) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000 ) );
                 }
-                if (Input.keyDown(Key.F)){
-                    this.navePrincipal.Disparar();}
+                if (Input.keyDown(Key.F))
+                {
+                    this.navePrincipal.Disparar();
+                }
+                var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
+                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(); });
+            }
 
-                }
 
             navePrincipal.Update(ElapsedTime);
-
-            var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
-
-            torretasEnRango.ForEach(torre => { torre.disparar(navePrincipal.GetPosition()); torre.Update(); });
-
 
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
@@ -334,10 +334,23 @@ namespace TGC.Group.Model
             }
 
 
-            if (currentScene.CheckCollision(navePrincipal))
-                navePrincipal.OOB.setRenderColor(Color.Red);
-            else
-                navePrincipal.OOB.setRenderColor(Color.Green);
+            var naves = enemigos.Select(e => (NaveEspacial)e).ToList();
+            naves.Add(navePrincipal);
+            naves.ForEach(nave => {
+
+                //Colision de todas las naves contra el escenario.
+                if (currentScene.CheckCollision(nave))
+                    nave.Morir();
+
+                //Colision entre naves.
+                naves.FindAll(n => n != nave).ForEach(n => {
+                    if (TgcCollisionUtils.testObbObb(nave.OOB, n.OOB))
+                    {
+                        nave.Morir();
+                        n.Morir();
+                    }
+                });
+            });
 
             //TODO: Esto tiene que cambiar, el escenario va a tener su lista de naves y ahi se tiene que manejar la colision!
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
@@ -458,8 +471,10 @@ namespace TGC.Group.Model
                 enemigo.Render();
             }
             );
-
-            menu.Render(ElapsedTime,drawer);
+            if (menu.estaEnMenu)
+            {
+                menu.Render(ElapsedTime,drawer);
+            } 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }
@@ -476,7 +491,6 @@ namespace TGC.Group.Model
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
             sonidoAmbiente.closeFile();
-            menu.Dispose();
             //sonidoLaser.closeFile();
         }
     }

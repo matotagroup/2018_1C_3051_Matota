@@ -144,7 +144,7 @@ namespace TGC.Group
 
         public List<Torre> TorresEnRango(TGCVector3 targetPosition)
         {
-            return torres.FindAll(torre => torre.enRango(targetPosition));
+            return torres.FindAll(torre => torre.EnRango(targetPosition));
         }
 
         public void Render(bool renderBoundingBox = false)
@@ -156,16 +156,16 @@ namespace TGC.Group
                     mesh.BoundingBox.Render();
             });
 
-            this.torres.ForEach(torre => torre.Render());
+            this.torres.ForEach(torre => torre.Render(renderBoundingBox));
 
-                boundingBoxesTowers.ForEach(m => m.BoundingBox.Render());
+            if (renderBoundingBox)
             {
+                boundingBoxesTowers.ForEach(m => m.BoundingBox.Render());
                 foreach (KeyValuePair<TgcBoundingAxisAlignBox, TGCVector3> entry in boundingBoxes)
                     entry.Key.Render();
                 foreach (KeyValuePair<TGCBox, TGCVector3> entry in notDeathfulBB)
                     entry.Key.BoundingBox.Render();
             }
-            
         }
 
         public TGCMatrix RotationMatrix()

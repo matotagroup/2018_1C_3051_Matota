@@ -21,7 +21,7 @@ namespace TGC.Group
             this.RotationVector = new TGCVector3(0, -FastMath.PI_HALF, 0);
             this.naveAPerseguir = naveAPerseguir;
             this.distancia = distanciaALaNave;
-            this.Vida = 0;
+            //this.Vida = 0;
         }
 
     

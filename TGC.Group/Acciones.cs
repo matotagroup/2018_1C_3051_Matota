@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Group.Model.MenuesImplementados;
 
 namespace TGC.Group
 {
@@ -16,7 +17,7 @@ namespace TGC.Group
     {
         public void realizar(Menu menu)
         {
-            menu.menuPrincipal = false;
+            menu.estaEnMenu = false;
         }
     }
     class AccionSalir : Accion
@@ -30,50 +31,42 @@ namespace TGC.Group
     {
         public void realizar(Menu menu)
         {
-            menu.menuPrincipal = false;
-            menu.menuOpciones = true;
+            menu.setMenuOpciones();
         }
     }
     class AccionAudio : Accion
     {
         public void realizar(Menu menu)
         {
-            menu.menuOpciones = false;
-            menu.menuAudio = true;
+            menu.setMenuAudio();
         }
     }
     class AccionControles : Accion
     {
         public void realizar(Menu menu)
         {
-            menu.menuOpciones = false;
-            menu.menuControles = true;
+            menu.setMenuControles();
         }
     }
     class AccionInstrucciones : Accion
     {
         public void realizar(Menu menu)
         {
-            menu.menuOpciones = false;
-            menu.menuInstrucciones = true;
+            menu.setMenuInstrucciones();
         }
     }
     class AccionVolver : Accion
     {
         public void realizar(Menu menu)
         {
-            menu.menuOpciones = false;
-            menu.menuPrincipal = true;
+            menu.setMenuPrincipal();
         }
     }
     class AccionAtras : Accion
     {
         public void realizar(Menu menu)
         {
-            menu.menuInstrucciones = false;
-            menu.menuAudio = false;
-            menu.menuControles = false;
-            menu.menuOpciones = true;
+            menu.setMenuOpciones();
         }
     }
     class AccionSonido : Accion
@@ -89,11 +82,11 @@ namespace TGC.Group
         {
             if (tipoSonido.On(menu))
             {
-                tipoSonido.cambiarTextura(menu,MediaDir, "off.png");
+                tipoSonido.cambiarTextura(menu.menuAudio,MediaDir, "off.png");
             }
             else
             {
-                tipoSonido.cambiarTextura(menu, MediaDir, "on.png");
+                tipoSonido.cambiarTextura(menu.menuAudio, MediaDir, "on.png");
             }
             tipoSonido.Modificar(menu);
         }
@@ -102,7 +95,7 @@ namespace TGC.Group
     interface TipoSonido
     {
          Boolean On(Menu menu);
-         void cambiarTextura(Menu menu,string MediaDir, string texture);
+         void cambiarTextura(MenuAudio menu,string MediaDir, string texture);
          void Modificar(Menu menu);
     }
     class AccionSonidoAmbiente : TipoSonido
@@ -111,7 +104,7 @@ namespace TGC.Group
         {
             return menu.playSonidoAmbiente;
         }
-        public void cambiarTextura(Menu menu,string MediaDir,string texture)
+        public void cambiarTextura(MenuAudio menu,string MediaDir,string texture)
         {
             menu.onSonidoAmbiente.cambiarTextura(MediaDir, texture);
         }
@@ -126,7 +119,7 @@ namespace TGC.Group
         {
             return menu.playSonidoMenu;
         }
-        public void cambiarTextura(Menu menu, string MediaDir, string texture)
+        public void cambiarTextura(MenuAudio menu, string MediaDir, string texture)
         {
             menu.onSonidoMenu.cambiarTextura(MediaDir, texture);
         }
@@ -142,7 +135,7 @@ namespace TGC.Group
         {
             return menu.playSonidoDisparos;
         }
-        public void cambiarTextura(Menu menu, string MediaDir, string texture)
+        public void cambiarTextura(MenuAudio menu, string MediaDir, string texture)
         {
             menu.onSonidoDisparos.cambiarTextura(MediaDir, texture);
         }
