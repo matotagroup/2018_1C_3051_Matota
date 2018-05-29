@@ -30,7 +30,7 @@ public class Torre
 
         ScaleFactor = new TGCVector3(5f, 5f, 5f);
         posicionArma.TryGetValue(this.Scene.SceneName, out posicionInicialArma);
-        arma = new Arma(turretShotSize, Color.Green, 1, posicionInicialArma);
+        arma = new Arma(turretShotSize, Color.Green, 1, 350, posicionInicialArma);
 
         this.ActionOnTorre(mesh => {
             mesh.AutoTransform = false;

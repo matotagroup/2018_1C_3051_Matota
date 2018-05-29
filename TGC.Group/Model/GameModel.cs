@@ -125,7 +125,7 @@ namespace TGC.Group.Model
               
             skyBox.Init();
 
-            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml",10);
+            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml",10,250);
             this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
@@ -138,7 +138,7 @@ namespace TGC.Group.Model
 
             for (int i = 0; i < 3;i++)
             {
-                enemigos.Add(new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", 5, navePrincipal, 500f));
+                enemigos.Add(new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", 5,500, navePrincipal, 500f));
                 enemigos[i].MovementVector = new TGCVector3(0,0,500000f);
                 enemigos[i].CreateOOB();
 
@@ -288,7 +288,7 @@ namespace TGC.Group.Model
                 //Disparar
                 //var estadoActual = sonidoLaser.getStatus();
                 var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
-                if (Input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+                if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
                 {
                     /*
                      if(estadoActual == TgcMp3Player.States.Open)
@@ -303,8 +303,10 @@ namespace TGC.Group.Model
                      */
                     this.navePrincipal.Disparar( new TGCVector3( ( ( ( D3DDevice.Instance.Width / 2 ) - Input.Xpos ) * 10 ) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, -1 ) );
                 }
+                if (Input.keyDown(Key.F)){
+                    this.navePrincipal.Disparar();}
 
-            }
+                }
 
             navePrincipal.Update(ElapsedTime);
 
@@ -325,15 +327,12 @@ namespace TGC.Group.Model
                 currentScene.UpdateBoundingBox();
                 currentScene = escenarios[nextSceneIndex];
 
-                if (enemigos.FindAll(enemigo => enemigo.EstaViva()).Count < 3)
+                if (enemigos.FindAll(enemigo => enemigo.EstaViva()&&enemigo.EnemigoEstaAdelante()).Count < 3)
                 {
-                    enemigos.FindAll(enemigo => !(enemigo.EstaViva()))[0].Relocate(new TGCVector3(0, 0, -1000f));
+                    enemigos.FindAll(enemigo => !enemigo.EstaViva()||!enemigo.EnemigoEstaAdelante())[0].Relocate(new TGCVector3(200f, 200f, -1000f));
                 }
             }
-            //if (enemigos.FindAll(enemigo => enemigo.EstaViva()).Count < 3)
-            //{
-            //    enemigos.FindAll(enemigo => !enemigo.EstaViva()).ForEach(enemigo => enemigo.Relocate(new TGCVector3(0, 0, -500f)));
-            //}
+
 
             if (currentScene.CheckCollision(navePrincipal))
                 navePrincipal.OOB.setRenderColor(Color.Red);
@@ -343,7 +342,6 @@ namespace TGC.Group.Model
             //TODO: Esto tiene que cambiar, el escenario va a tener su lista de naves y ahi se tiene que manejar la colision!
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
               {
-                  enemigo.UpdateBoundingBox();
                   if (navePrincipal.CheckIfMyShotsCollided(enemigo))
                   {
                       enemigo.Daniar(navePrincipal.ArmaPrincipal.Danio);
@@ -370,9 +368,6 @@ namespace TGC.Group.Model
                 enemigo.Update();
             }
             );
-
-            if (Input.keyDown(Key.H))
-                enemigos[0].Move(new TGCVector3(-0.1f,0,-0.1f));
 
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
 

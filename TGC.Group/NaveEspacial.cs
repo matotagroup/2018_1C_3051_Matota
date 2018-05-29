@@ -36,14 +36,14 @@ namespace TGC.Group
 
         private readonly float COOLDOWNMOVIMIENTOS = 2000;
 
-        public int Vida { get; private set; }  = 100;
+        public int Vida { get; protected set; }  = 100;
 
         public TgcBoundingOrientedBox OOB
         {
             private set; get;
         }
 
-        public NaveEspacial(string MediaDir, string modelToUse, int danio)
+        public NaveEspacial(string MediaDir, string modelToUse, int danio,int cdDisparo)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
             this.TransformMatix = TGCMatrix.Identity;
@@ -51,7 +51,7 @@ namespace TGC.Group
             this.RotationVector = TGCVector3.Empty;
             this.MovementVector = TGCVector3.Empty;
 
-            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, danio, this.GetPosition());
+            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, danio, cdDisparo, this.GetPosition());
             this.coolDownMovimientos = Stopwatch.StartNew();
 
 

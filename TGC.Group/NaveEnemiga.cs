@@ -15,11 +15,10 @@ namespace TGC.Group
         private NaveEspacial naveAPerseguir;
         private float distancia;
 
-        public NaveEnemiga(string MediaDir, string modelToUse/*,TGCVector3 relativePosition*/, int danio, NaveEspacial naveAPerseguir,float distanciaALaNave) : base (MediaDir, modelToUse, danio)
+        public NaveEnemiga(string MediaDir, string modelToUse, int danio, int cdDisparo, NaveEspacial naveAPerseguir,float distanciaALaNave) : base (MediaDir, modelToUse, danio,cdDisparo)
         {
             this.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.RotationVector = new TGCVector3(0, -FastMath.PI_HALF, 0);
-            //this.MovementVector = naveAPerseguir.MovementVector + relativePosition;
             this.naveAPerseguir = naveAPerseguir;
             this.distancia = distanciaALaNave;
             this.Vida = 0;
@@ -36,7 +35,7 @@ namespace TGC.Group
             return EsIgual(MovementVector.X,naveAPerseguir.GetPosition().X) && EsIgual(MovementVector.Y,naveAPerseguir.GetPosition().Y);
         }
 
-        private bool EnemigoEstaAdelante()
+        public bool EnemigoEstaAdelante()
         {
             return naveAPerseguir.GetPosition().Z > GetPosition().Z;
         }

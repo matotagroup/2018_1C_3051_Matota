@@ -24,8 +24,10 @@ namespace TGC.Group
 
         public int Danio { set; get; }
 
+        private int cooldownDisparo;
 
-        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo, int danio, TGCVector3 startPosition)
+
+        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo, int danio, int cdDisparo, TGCVector3 startPosition)
         {
             this.Danio = danio;
             this.shotSize = tamanioDisparo;
@@ -33,6 +35,7 @@ namespace TGC.Group
             this.disparos = new List<Disparo>();
             shotLimiter = Stopwatch.StartNew();
             position = startPosition;
+            cooldownDisparo = cdDisparo;
 
         }
         
@@ -40,7 +43,7 @@ namespace TGC.Group
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
         public void Disparar(TGCVector3 targetPosition)
         {
-            if(shotLimiter.ElapsedMilliseconds > 250)
+            if(shotLimiter.ElapsedMilliseconds > cooldownDisparo)
             {
                 this.disparos.Add(new Disparo(position,targetPosition,shotSize,shotColor));
                 shotLimiter.Restart();
