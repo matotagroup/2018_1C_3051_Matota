@@ -19,7 +19,7 @@ namespace TGC.Group.Model.MenuesImplementados
         private Simbolo disparar;
         private Simbolo d;
         private Simbolo a;
-        private Simbolo f;
+        private Simbolo left_click;
         private Simbolo shift;
         private Boton atras;
 
@@ -32,7 +32,7 @@ namespace TGC.Group.Model.MenuesImplementados
         private TGCVector2 posicionAfterBurn = new TGCVector2(100, 500);
         private TGCVector2 posicionShift = new TGCVector2(900, 500);
         private TGCVector2 posicionDisparar = new TGCVector2(100, 600);
-        private TGCVector2 posicionF = new TGCVector2(900, 600);
+        private TGCVector2 posicionLeftClick = new TGCVector2(900, 600);
         private TGCVector2 posicionAtras = new TGCVector2(100, 800);
 
         List<Simbolo> simbolos;
@@ -47,7 +47,7 @@ namespace TGC.Group.Model.MenuesImplementados
             disparar = new Simbolo(MediaDir, "disparar.png", input);
             d = new Simbolo(MediaDir, "d.png", input);
             a = new Simbolo(MediaDir, "a.png", input);
-            f = new Simbolo(MediaDir, "f.png", input);
+            left_click = new Simbolo(MediaDir, "left_click.png", input);
             shift = new Simbolo(MediaDir, "shift.png", input);
             atras = new Boton(MediaDir, "atras.png", input, "seleccion_atras.png", new AccionAtras());
 
@@ -59,7 +59,7 @@ namespace TGC.Group.Model.MenuesImplementados
             disparar.Position = posicionDisparar;
             d.Position = posicionD;
             a.Position = posicionA;
-            f.Position = posicionF;
+            left_click.Position = posicionLeftClick;
             shift.Position = posicionShift;
             atras.Position = posicionAtras;
 
@@ -71,7 +71,7 @@ namespace TGC.Group.Model.MenuesImplementados
             simbolos.Add(izquierda);
             simbolos.Add(a);
             simbolos.Add(disparar);
-            simbolos.Add(f);
+            simbolos.Add(left_click);
             simbolos.Add(afterBurn);
             simbolos.Add(shift);
         }

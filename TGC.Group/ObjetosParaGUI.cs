@@ -16,6 +16,7 @@ namespace TGC.Group
         public CustomSprite spriteActual = new CustomSprite();
         public CustomBitmap spritePrincipal;
         public TGCVector2 Position { get { return spriteActual.Position; } set { spriteActual.Position = value; } }
+        public TGCVector2 Scaling { get { return spriteActual.Scaling; } set { spriteActual.Scaling = value; } }
         public Simbolo(string MediaDir, string texture, TgcD3dInput input)
         {
             spritePrincipal = new CustomBitmap(MediaDir + "XWing\\Textures\\" + texture, D3DDevice.Instance.Device);

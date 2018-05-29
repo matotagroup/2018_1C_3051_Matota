@@ -83,8 +83,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Acciones.cs" />
+    <Compile Include="Barra.cs" />
     <Compile Include="Camara.cs" />
     <Compile Include="Arma.cs" />
+    <Compile Include="Hud.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="Model\MenuesImplementados\MenuAudio.cs" />
     <Compile Include="Model\MenuesImplementados\MenuControles.cs" />

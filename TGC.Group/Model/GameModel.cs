@@ -68,6 +68,7 @@ namespace TGC.Group.Model
         private TGCBox sol;
         private Menu menu;
         private Drawer2D drawer;
+        private Hud hud;
 
         public Torre porongadeprueba;
         /// <summary>
@@ -200,6 +201,7 @@ namespace TGC.Group.Model
             //sonidoLaser.FileName = MediaDir + "Music\\laserSound.mp3";
             menu = new Menu(MediaDir,Input);
             drawer = new Drawer2D();
+            hud = new Hud(MediaDir, Input);
         }
 
         public void InifinityChecker()
@@ -229,6 +231,10 @@ namespace TGC.Group.Model
                 PostUpdate();
                 return;
             }
+            else
+            {
+                hud.Update(navePrincipal);
+            }
 
             var movimientoNave = TGCVector3.Empty;
 
@@ -253,6 +259,7 @@ namespace TGC.Group.Model
                         movimientoZ -= factorMovimientoZ * 3;
 
                     movimientoNave.Z = movimientoZ;
+                    navePrincipal.GastarFuel(1.5f, hud);
                 }
 
 
@@ -478,7 +485,11 @@ namespace TGC.Group.Model
             if (menu.estaEnMenu)
             {
                 menu.Render(ElapsedTime,drawer);
-            } 
+            }
+            else
+            {
+                hud.Render(ElapsedTime, drawer);
+            }
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
         }

@@ -38,6 +38,8 @@ namespace TGC.Group
 
         public int Vida { get; protected set; }  = 100;
 
+        public float afterBurnFuel { get; set; } = 100;
+
         public TgcBoundingOrientedBox OOB
         {
             private set; get;
@@ -69,6 +71,17 @@ namespace TGC.Group
         {
             if(!this.shouldBarrelRoll)
                 this.Vida -= cantidadDanio;
+        }
+
+        public void GastarFuel(float cantUsada, Hud hud)
+        {
+            this.afterBurnFuel = Math.Max(this.afterBurnFuel - cantUsada, 0);
+            hud.ReducirFuel(afterBurnFuel);
+        }
+
+        public void RecargarFuel(float cantUsada)
+        {
+            this.afterBurnFuel = Math.Min(this.afterBurnFuel + cantUsada, 100);
         }
 
         public void Disparar()
