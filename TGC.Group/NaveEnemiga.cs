@@ -71,10 +71,7 @@ namespace TGC.Group
 
             movimiento.X = ObtenerDireccion(MovementVector.X, naveAPerseguir.GetPosition().X);
             movimiento.Y = ObtenerDireccion(MovementVector.Y, naveAPerseguir.GetPosition().Y);
-            if (this.EstaLejos())
-                movimiento.Z = this.ObtenerDireccion(this.MovementVector.Z, naveAPerseguir.GetPosition().Z);
-            else
-                movimiento.Z = -2f;
+            movimiento.Z = ObtenerDireccion(MovementVector.Z, naveAPerseguir.GetPosition().Z);
         }
 
         private bool EstaCerca()
@@ -90,7 +87,7 @@ namespace TGC.Group
         public void Perseguir(float elapsedTime)
         {
             var movimiento = TGCVector3.Empty;
-            if (!this.EstaAlineado()/*||EstaLejos()*/||EstaCerca())
+            if (!this.EstaAlineado()||EstaLejos())
             {
                 this.ObtenerMovimiento(ref movimiento);
                 this.Move(movimiento * elapsedTime);

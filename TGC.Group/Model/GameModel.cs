@@ -70,7 +70,7 @@ namespace TGC.Group.Model
         private Drawer2D drawer;
         private Hud hud;
 
-        public Torre porongadeprueba;
+
         /// <summary>
         /// Representa el scene donde actualmente esta el jugador.
         /// </summary>
@@ -148,10 +148,6 @@ namespace TGC.Group.Model
 
             }
 
-            var ub = navePrincipal.GetPosition() + new TGCVector3(0, 0, -1000f);
-            porongadeprueba = new Torre(MediaDir);
-            porongadeprueba.Relocate(new TGCVector4(ub.X, ub.Y, ub.Z, 0));
-
 
             //enemigos[0].Relocate(new TGCVector3(0,0,-400f));
 
@@ -181,25 +177,26 @@ namespace TGC.Group.Model
             };
             sonidoMenu = new TgcMp3Player
             {
-                FileName = MediaDir + "Music\\musica_menu.mp3"
+                FileName = MediaDir + "Sound\\musica_menu.mp3"
             };
 
             sol = TGCBox.fromSize(new TGCVector3(0,-500,0), new TGCVector3(5, 5, 5), Color.Yellow);
             sol.AutoTransform = true;
-            /*if(menu.sonidoAmbiente())
+            menu = new Menu(MediaDir, Input);
+            if (menu.playSonidoAmbiente)
               {
                     sonidoAmbiente.play(true);
               }
              
-            if (menu.sonidoMenu)
-            {
-                sonidoMenu.play(true);
-            }*/
+            //if (menu.playSonidoMenu)
+            //{
+            //    sonidoMenu.play(true);
+            //}
 
             //Sonido laser
             //sonidoLaser = new TgcMp3Player();
             //sonidoLaser.FileName = MediaDir + "Music\\laserSound.mp3";
-            menu = new Menu(MediaDir,Input);
+            
             drawer = new Drawer2D();
             hud = new Hud(MediaDir, Input);
         }
@@ -257,19 +254,25 @@ namespace TGC.Group.Model
                 {
                     if (movimientoZ > movimientoMaximoZ)
                         movimientoZ -= factorMovimientoZ * 3;
-
-                    movimientoNave.Z = movimientoZ;
                     navePrincipal.GastarFuel(1.5f, hud);
+
                 }
-
-
-                if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
+                if (movimientoZ < movimientoBaseZ)
                 {
-                    if (movimientoZ < movimientoBaseZ)
-                        movimientoZ += factorMovimientoZ;
+                    movimientoZ += factorMovimientoZ;
+                }
 
                     movimientoNave.Z = movimientoZ;
-                }
+                
+
+
+                //if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
+                //{
+                //    if (movimientoZ < movimientoBaseZ)
+                //        movimientoZ += factorMovimientoZ;
+
+                //    movimientoNave.Z = movimientoZ;
+                //}
                 //Movernos adelante y atras, sobre el eje Z.
 
                 //if (movimientoZ < movimientoBaseZ)
@@ -339,7 +342,7 @@ namespace TGC.Group.Model
                 currentScene = escenarios[nextSceneIndex];
 
                 if (enemigos.FindAll(enemigo => enemigo.EstaViva()&&enemigo.EnemigoEstaAdelante()).Count < 3)
-                    enemigos.FindAll(enemigo => !enemigo.EstaViva()||!enemigo.EnemigoEstaAdelante())[0].Relocate(new TGCVector3(200f, 200f, -1000f));
+                    enemigos.FindAll(enemigo => !enemigo.EstaViva()||!enemigo.EnemigoEstaAdelante())[0].Relocate(new TGCVector3(100f, 100f, -3000f));
             }
 
             // No permitir que se salga de los limites, el salto que hace para volver es medio brusco, se podria atenuar.
@@ -473,7 +476,7 @@ namespace TGC.Group.Model
                 es.Render();
             });
 
-            porongadeprueba.Render();
+
             this.navePrincipal.Render();
 
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
