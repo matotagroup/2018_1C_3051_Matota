@@ -113,7 +113,7 @@ float4 ps_VertexColor(PS_INPUT_VERTEX_COLOR input) : COLOR0
 
 	//Componente Diffuse: N dot L
 	float3 n_dot_l = dot(Nn, Ln);
-	float3 diffuseLight = diffuseColor * max(0.0, n_dot_l); //Controlamos que no de negativo
+	float3 diffuseLight = 0.00001 * diffuseColor * max(0.0, n_dot_l); //Controlamos que no de negativo
 
 	//Componente Specular: (N dot H)^exp
 	float3 n_dot_h = dot(Nn, Hn);
@@ -223,6 +223,8 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 
 	//Color final: modular (Ambient + Diffuse) por el color de la textura, y luego sumar Specular.
 	float4 finalColor = float4(saturate(ambientColor + diffuseLight) * texelColor + specularLight, texelColor.a);
+
+    finalColor = float4(finalColor.rgb * 1.2, finalColor.a);
 
 	return finalColor;
 }

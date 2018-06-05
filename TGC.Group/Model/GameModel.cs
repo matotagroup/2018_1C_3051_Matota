@@ -180,7 +180,7 @@ namespace TGC.Group.Model
                 FileName = MediaDir + "Sound\\musica_menu.mp3"
             };
 
-            sol = TGCBox.fromSize(new TGCVector3(0,-500,0), new TGCVector3(5, 5, 5), Color.Yellow);
+            sol = TGCBox.fromSize(new TGCVector3(2000,200,2000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
             if (menu.playSonidoAmbiente)
@@ -257,22 +257,22 @@ namespace TGC.Group.Model
                     navePrincipal.GastarFuel(1.5f, hud);
 
                 }
-                if (movimientoZ < movimientoBaseZ)
+                /*if (movimientoZ < movimientoBaseZ)
                 {
                     movimientoZ += factorMovimientoZ;
                 }
 
                     movimientoNave.Z = movimientoZ;
-                
+                */
 
 
-                //if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
-                //{
-                //    if (movimientoZ < movimientoBaseZ)
-                //        movimientoZ += factorMovimientoZ;
+                if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
+                {
+                    if (movimientoZ < movimientoBaseZ)
+                        movimientoZ += factorMovimientoZ;
 
-                //    movimientoNave.Z = movimientoZ;
-                //}
+                    movimientoNave.Z = movimientoZ;
+                }
                 //Movernos adelante y atras, sobre el eje Z.
 
                 //if (movimientoZ < movimientoBaseZ)
@@ -355,7 +355,7 @@ namespace TGC.Group.Model
 
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
             {
-                enemigo.Perseguir(ElapsedTime);
+                //enemigo.Perseguir(ElapsedTime);
                 enemigo.Update(ElapsedTime);
             }
             );
@@ -401,6 +401,7 @@ namespace TGC.Group.Model
             }
 
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
+            this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
@@ -425,7 +426,7 @@ namespace TGC.Group.Model
             {
                 m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
                 m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
-                m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
+                m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(Camara.Position));
                 m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 150, 150, 150)));
 
 
@@ -433,7 +434,7 @@ namespace TGC.Group.Model
                 m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
                 //m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.Black));
 
-                m.Effect.SetValue("specularExp", 50f);
+                m.Effect.SetValue("specularExp", 200f);
             });
 
             escenarios.ForEach(e => {
@@ -441,14 +442,14 @@ namespace TGC.Group.Model
                    {
                        m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
                        m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
-                       m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
+                       m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array( Camara.Position ));
                        m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 150, 150, 150)));
 
                        m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(255, 99,72,7)));
                        m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
                        //m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.Black));
 
-                       m.Effect.SetValue("specularExp", 50f);
+                       m.Effect.SetValue("specularExp", 200f);
                    });
             });
 
