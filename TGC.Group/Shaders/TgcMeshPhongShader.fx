@@ -160,12 +160,15 @@ struct VS_OUTPUT_DIFFUSE_MAP
 	float3 WorldNormal : TEXCOORD1;
 	float3 LightVec	: TEXCOORD2;
 	float3 HalfAngleVec	: TEXCOORD3;
+    float4 MeshPos : TEXCOORD4;
 };
 
 //Vertex Shader
 VS_OUTPUT_DIFFUSE_MAP vs_DiffuseMap(VS_INPUT_DIFFUSE_MAP input)
 {
 	VS_OUTPUT_DIFFUSE_MAP output;
+
+    output.MeshPos = input.Position;
 
 	//Proyectar posicion
 	output.Position = mul(input.Position, matWorldViewProj);
@@ -198,11 +201,15 @@ struct PS_DIFFUSE_MAP
 	float3 WorldNormal : TEXCOORD1;
 	float3 LightVec	: TEXCOORD2;
 	float3 HalfAngleVec	: TEXCOORD3;
+    float4 MeshPos : TEXCOORD4;
 };
 
 //Pixel Shader
 float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 {
+
+    //float multiplier = ((input.MeshPos.y < 0.5) ? 0 : 1);
+    float multiplier = 1;
 	//Normalizar vectores
 	float3 Nn = normalize(input.WorldNormal);
 	float3 Ln = normalize(input.LightVec);
@@ -226,7 +233,7 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 
     finalColor = float4(finalColor.rgb * 1.2, finalColor.a);
 
-	return finalColor;
+	return finalColor * multiplier;
 }
 
 /*
