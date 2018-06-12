@@ -180,7 +180,7 @@ namespace TGC.Group.Model
                 FileName = MediaDir + "Sound\\musica_menu.mp3"
             };
 
-            sol = TGCBox.fromSize(new TGCVector3(2000,200,2000), new TGCVector3(50, 50, 50), Color.Yellow);
+            sol = TGCBox.fromSize(new TGCVector3(0,5000,1000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
             if (menu.playSonidoAmbiente)
@@ -422,35 +422,10 @@ namespace TGC.Group.Model
             sol.Render();
 
             //Seteo el effect del mesh de la nave.
-            navePrincipal.ActionOnNave(m =>
-            {
-                m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
-                m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
-                m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(Camara.Position));
-                m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 150, 150, 150)));
-
-
-                m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(255, 99,72,7)));
-                m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
-                //m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.Black));
-
-                m.Effect.SetValue("specularExp", 200f);
-            });
+            navePrincipal.ActionOnNave(AplicarLuz);
 
             escenarios.ForEach(e => {
-                   e.ForEachMesh(m =>
-                   {
-                       m.Effect = TgcShaders.Instance.TgcMeshPhongShader;
-                       m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
-                       m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array( Camara.Position ));
-                       m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 150, 150, 150)));
-
-                       m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.FromArgb(255, 99,72,7)));
-                       m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
-                       //m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.Black));
-
-                       m.Effect.SetValue("specularExp", 200f);
-                   });
+                   e.ForEachMesh(AplicarLuz);
             });
 
 
@@ -496,6 +471,26 @@ namespace TGC.Group.Model
             }
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
             PostRender();
+        }
+
+        public void AplicarLuz(TgcMesh m)
+        {
+            m.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
+            m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
+            m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(Camara.Position));
+
+            m.Effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.Black));
+            m.Effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
+            m.Effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.White));
+            m.Effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));
+
+            m.Effect.SetValue("lightIntensity", 20f);
+            m.Effect.SetValue("lightAttenuation", 0.0099f);
+
+            m.Effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
+
+            m.Effect.SetValue("materialSpecularExp", 10);
+            m.Effect.SetValue("time", ElapsedTime);
         }
 
         /// <summary>

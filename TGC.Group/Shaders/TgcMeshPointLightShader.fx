@@ -36,6 +36,7 @@ sampler2D lightMap = sampler_state
 	Texture = (texLightMap);
 };
 
+float time;
 //Material del mesh
 float3 materialEmissiveColor; //Color RGB
 float3 materialAmbientColor; //Color RGB
@@ -233,7 +234,7 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 
 	//Calcular intensidad de luz, con atenuacion por distancia
 	float distAtten = length(lightPosition.xyz - input.WorldPosition) * lightAttenuation;
-	float intensity = lightIntensity / distAtten; //Dividimos intensidad sobre distancia (lo hacemos lineal pero tambien podria ser i/d^2)
+    float intensity = (lightIntensity / distAtten)*2; //Dividimos intensidad sobre distancia (lo hacemos lineal pero tambien podria ser i/d^2)
 
 	//Obtener texel de la textura
 	float4 texelColor = tex2D(diffuseMap, input.Texcoord);
@@ -255,7 +256,8 @@ float4 ps_DiffuseMap(PS_DIFFUSE_MAP input) : COLOR0
 	   El color Alpha sale del diffuse material */
 	float4 finalColor = float4(saturate(materialEmissiveColor + ambientLight + diffuseLight) * texelColor + specularLight, materialDiffuseColor.a);
 
-	return finalColor;
+    //efecto relampago: return finalColor * time * 100;
+    return finalColor;
 }
 
 /*
