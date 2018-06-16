@@ -24,7 +24,7 @@ namespace TGC.Group
             new Tuple<TGCVector3,bool> (new TGCVector3 (500f,0,-10000f),true)
         };
 
-        public NaveEnemiga(string MediaDir, string modelToUse, int danio, int cdDisparo, NaveEspacial naveAPerseguir) : base(MediaDir, modelToUse, danio, cdDisparo)
+        public NaveEnemiga(string MediaDir, string modelToUse, int danio, int cdDisparo, NaveEspacial naveAPerseguir) : base(MediaDir, modelToUse, danio, cdDisparo, "DIFFUSE_MAP_PHONG")
         {
             this.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.RotationVector = new TGCVector3(0, -FastMath.PI_HALF, 0);

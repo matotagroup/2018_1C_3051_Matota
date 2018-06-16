@@ -192,7 +192,7 @@ namespace TGC.Group
             effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.Black));
             effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
             effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.White));
-            effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));
+            effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(255, 65, 65, 65)));
 
             effect.SetValue("lightIntensity", 40f);
             effect.SetValue("lightAttenuation", 0.01f);//0.0099f);
@@ -205,7 +205,8 @@ namespace TGC.Group
         public void UpdateTerrainLight(TGCVector3 lightPosition, TGCVector3 lookFrom, float ElapsedTime)
         {
             var effect = TgcShaders.Instance.TgcMeshPointLightShader;
-            effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(lightPosition));
+            // A la posicion de la luz le restamos 3000 en Z para que este un poco mas adelante en el terreno, el objetivo es que se vea mejor el specular como si estuviera un poco adelante nuestro.
+            effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(lightPosition - new TGCVector3(0,0,3000)));
             effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(lookFrom));
             effect.SetValue("time", ElapsedTime);
         }

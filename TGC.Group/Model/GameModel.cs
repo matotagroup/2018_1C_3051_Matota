@@ -230,7 +230,7 @@ namespace TGC.Group.Model
                 FileName = MediaDir + "Sound\\musica_menu.mp3"
             };
 
-            sol = TGCBox.fromSize(new TGCVector3(0, 5000, 1000), new TGCVector3(50, 50, 50), Color.Yellow);
+            sol = TGCBox.fromSize(new TGCVector3(0, 5000, 4000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
             if (menu.playSonidoAmbiente)
@@ -476,7 +476,7 @@ namespace TGC.Group.Model
             }
 
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
-            //this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
+            this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
@@ -491,31 +491,21 @@ namespace TGC.Group.Model
             d3dDevice.BeginScene();
             skyBox.Render();
 
+            // En esta pasada le aplicamos el efecto de luz metalica. con los enemigos no hace falta esto porque nunca cambian la technique.
+            navePrincipal.ActionOnNave(nave => nave.Technique = "DIFFUSE_MAP_PHONG");
 
-            //Seteo el effect del mesh de la nave.
-            navePrincipal.ActionOnNave(SpaceshipsLight);
-            //navePrincipal.ActionOnNave(nave =>
-            //{
-            //    nave.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
-            //    nave.Technique = "DIFFUSE_MAP";
-            //}
-            //);
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
-            navePrincipal.Render();
+            navePrincipal.Render(sol.Position, Camara.Position);
 
             this.escenarios.ForEach((es) => {
                 es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
                 es.Render(sol.Position, Camara.Position, ElapsedTime);
             });
 
-
-
-            //this.navePrincipal.Render();
-
             enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
             {
                 enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
-                enemigo.Render();
+                enemigo.Render(sol.Position, Camara.Position);
             }
             );
 
@@ -531,8 +521,9 @@ namespace TGC.Group.Model
             d3dDevice.EndScene();
         }
 
-
+        //SOLO PARA TESTING!!!!!!!!!!!!!! SI SE PONE EN TRUE SE GUARDAN LAS TEXTURAS QUE SE VAN GENERANDO EN EL MEDIA DIR.
         bool save = false;
+
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al ren|rendederizado.
@@ -550,8 +541,9 @@ namespace TGC.Group.Model
 
             var superficieVieja = d3dDevice.GetRenderTarget(0);
             var superficieEscena = this.escena.GetSurfaceLevel(0);
+
             depthStencilOld = d3dDevice.DepthStencilSurface;
-            d3dDevice.DepthStencilSurface = depthStencil;
+            //d3dDevice.DepthStencilSurface = depthStencil;
 
             d3dDevice.SetRenderTarget(0, superficieEscena);
             // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
@@ -563,6 +555,11 @@ namespace TGC.Group.Model
 
             superficieEscena.Dispose();
 
+            if (save)
+            {
+                TextureLoader.Save(this.MediaDir + "escena.bmp", ImageFileFormat.Bmp, this.escena);
+            }
+
 
             var superficieGlow = this.propulsoresBlurAux.GetSurfaceLevel(0);
             d3dDevice.SetRenderTarget(0, superficieGlow);
@@ -572,14 +569,9 @@ namespace TGC.Group.Model
 
             d3dDevice.BeginScene();
 
-            navePrincipal.ActionOnNave(nave =>
-            {
-                
-                nave.Technique = "corte";
-            }
-            );
+            navePrincipal.ActionOnNave(nave => nave.Technique = "CortePropulsores");
 
-            navePrincipal.Render();
+            navePrincipal.Render(TGCVector3.Empty, TGCVector3.Empty);
             d3dDevice.EndScene();
 
             superficieGlow.Dispose();
@@ -592,10 +584,12 @@ namespace TGC.Group.Model
             if (cant_pasadas > 0)
             {
                 /*
-                  Si se activa el siguiente efecto mata aun mas a la gpu, la realidad es que no agrega mucho porque 
-                  degrada el color de la textura un poco asi que se puede dejar apagado para que no consuma. si se enciende hacer que
+                  Si se activa el siguiente efecto mata bastante a la gpu, la realidad es que no agrega mucho porque 
+                  degrada el color de la textura un poco y considerando que solo son 4 propulsores no lo vale,
+                  asi que se puede dejar apagado para que no consuma. si se enciende hacer que
                   la textura de corte se grabe en propulsores en vez de propulsoresbluraux.
                   */
+
                 //superficieGlow = propulsores4.GetSurfaceLevel(0);
                 //d3dDevice.SetRenderTarget(0, superficieGlow);
 
@@ -758,14 +752,14 @@ namespace TGC.Group.Model
             m.Technique = "DIFFUSE_MAP_PHONG";
 
             m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
-            m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
+            m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(Camara.Position));
             m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));//Color.FromArgb(255, 150, 150, 150)
 
 
             m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.White)); //Color.FromArgb(255, 99, 72, 7)
             m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
 
-            m.Effect.SetValue("specularExp", 50f);
+            m.Effect.SetValue("specularExp", 200f);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.DirectX.Direct3D;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using TGC.Core.BoundingVolumes;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Shaders;
 using TGC.Core.Textures;
 
 namespace TGC.Group
@@ -45,7 +47,7 @@ namespace TGC.Group
             private set; get;
         }
 
-        public NaveEspacial(string MediaDir, string modelToUse, int danio,int cdDisparo)
+        public NaveEspacial(string MediaDir, string modelToUse, int danio, int cdDisparo, string defaultTechnique = null)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
             this.TransformMatix = TGCMatrix.Identity;
@@ -59,7 +61,12 @@ namespace TGC.Group
 
             this.ActionOnNave((mesh) => {
                 mesh.AutoTransform = false; //Desactivar el autotransform para poder usar el mesh.transform.
+                mesh.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
+                if (!string.IsNullOrEmpty(defaultTechnique))
+                    mesh.Technique = defaultTechnique;
             });
+
+            SetUpLighting();
         }
 
         //public NaveEspacial(string MediaDir, string modelToUse, int danio): this(MediaDir, modelToUse)
@@ -132,6 +139,23 @@ namespace TGC.Group
                 this.shouldBarrelRoll = false;
             }
             
+        }
+
+        private void SetUpLighting()
+        {
+            var effect = TgcShaders.Instance.TgcMeshPointLightShader;
+
+            effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));
+            effect.SetValue("diffuseColor", ColorValue.FromColor(Color.WhiteSmoke)); 
+            effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
+            effect.SetValue("specularExp", 200f);
+        }
+
+        private void LightingUpdate(TGCVector3 lightPosition, TGCVector3 lookFrom)
+        {
+            var effect = TgcShaders.Instance.TgcMeshPointLightShader;
+            effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(lightPosition));
+            effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(lookFrom));
         }
 
         public void DoBarrelRoll()
@@ -276,8 +300,9 @@ namespace TGC.Group
 
         }
 
-        public void Render(bool renderBoundingBox = false)
+        public void Render(TGCVector3 lightPosition, TGCVector3 lookFrom, bool renderBoundingBox = false)
         {
+            LightingUpdate(lightPosition, lookFrom);
             if (renderBoundingBox)
                 this.OOB.Render();
             

@@ -542,8 +542,6 @@ struct PS_INPUT_CORTE
     float4 PosMesh : TEXCOORD4;
 };
 
-float maiame;
-
 float4 ps_corte(VS_OUTPUT input) : COLOR0
 {
 // Obtener el texel de textura
@@ -556,10 +554,7 @@ float4 ps_corte(VS_OUTPUT input) : COLOR0
 
 }
 
-
-
-//technique DIFFUSE_MAP_AND_LIGHTMAP
-technique corte
+technique CortePropulsores
 {
     pass Pass_0
     {
