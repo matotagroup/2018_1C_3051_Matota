@@ -3712,6 +3712,8 @@
     <Content Include="Media\XWing\x4-TgcScene.xml" />
     <Content Include="Media\XWing\x5-TgcScene.xml" />
     <Content Include="Media\XWing\xwing-TgcScene.xml" />
+    <Content Include="Shaders\GaussianBlur.fx" />
+    <Content Include="Shaders\PostProcess.fx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

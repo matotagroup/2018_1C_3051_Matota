@@ -278,7 +278,8 @@ namespace TGC.Group
 
         public void Render(bool renderBoundingBox = false)
         {
-            this.OOB.Render();
+            if (renderBoundingBox)
+                this.OOB.Render();
             
             this.ActionOnNave((mesh) => {
                 mesh.Transform = TransformMatix;
