@@ -41,9 +41,17 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
+        float maiame = 0;
+
 
 
         List<NaveEnemiga> hola = new List<NaveEnemiga>();
+
+
+        private Texture escena, propulsores, propulsores4, propulsores4Aux;
+        private VertexBuffer screenQuadVB;
+        private Microsoft.DirectX.Direct3D.Effect postProcessMerge, blurEffect;
+        private int cant_pasadas = 2;
 
         //Scenes
         private NaveEspacial navePrincipal;
@@ -69,7 +77,8 @@ namespace TGC.Group.Model
         private Menu menu;
         private Drawer2D drawer;
         private Hud hud;
-
+        private Surface depthStencil; // Depth-stencil buffer
+        private Surface depthStencilOld;
 
         /// <summary>
         /// Representa el scene donde actualmente esta el jugador.
@@ -79,6 +88,7 @@ namespace TGC.Group.Model
         //Sounds
         private TgcMp3Player sonidoAmbiente;
         private TgcMp3Player sonidoMenu;
+
         private int enemigosAlMismoTiempo = 3;
         private int dañoEnemigos = 5;
 
@@ -103,8 +113,36 @@ namespace TGC.Group.Model
         public override void Init()
         {
 
+            CustomVertex.PositionTextured[] screenQuadVertices =
+            {
+                new CustomVertex.PositionTextured(-1, 1, 1, 0, 0),
+                new CustomVertex.PositionTextured(1, 1, 1, 1, 0),
+                new CustomVertex.PositionTextured(-1, -1, 1, 0, 1),
+                new CustomVertex.PositionTextured(1, -1, 1, 1, 1)
+            };
+            //vertex buffer de los triangulos
+            screenQuadVB = new VertexBuffer(typeof(CustomVertex.PositionTextured), 4, D3DDevice.Instance.Device, Usage.Dynamic | Usage.WriteOnly,
+                CustomVertex.PositionTextured.Format, Pool.Default);
+            screenQuadVB.SetData(screenQuadVertices, 0, LockFlags.None);
+
+            //Creamos un DepthStencil que debe ser compatible con nuestra definicion de renderTarget2D.
+            depthStencil = D3DDevice.Instance.Device.CreateDepthStencilSurface(D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth,
+                    D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, DepthFormat.D24S8, MultiSampleType.None, 0, true);
+
+            depthStencilOld = D3DDevice.Instance.Device.DepthStencilSurface;
 
 
+            escena = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth,
+                D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
+
+            propulsores = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
+                D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
+
+            propulsores4 = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
+                D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight , 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
+
+            propulsores4Aux = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
+                D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight , 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
             //Device de DirectX para crear primitivas.
             var d3dDevice = D3DDevice.Instance.Device;
@@ -113,6 +151,12 @@ namespace TGC.Group.Model
                     D3DDevice.Instance.AspectRatio,
                     D3DDevice.Instance.ZNearPlaneDistance,
                     D3DDevice.Instance.ZFarPlaneDistance * 1.8f);
+            
+            this.postProcessMerge = TgcShaders.loadEffect(this.ShadersDir + "PostProcess.fx");
+            this.blurEffect = TgcShaders.loadEffect(this.ShadersDir + "GaussianBlur.fx");
+
+            blurEffect.SetValue("screen_dx", d3dDevice.PresentationParameters.BackBufferWidth);
+            blurEffect.SetValue("screen_dy", d3dDevice.PresentationParameters.BackBufferHeight);
 
             this.escenarios = new List<Escenario>();
 
@@ -188,7 +232,8 @@ namespace TGC.Group.Model
             menu = new Menu(MediaDir, Input);
             if (menu.playSonidoAmbiente)
             {
-                sonidoAmbiente.play(true);
+
+                //sonidoAmbiente.play(true);
             }
 
             //if (menu.playSonidoMenu)
@@ -237,10 +282,15 @@ namespace TGC.Group.Model
             }
 
             var movimientoNave = TGCVector3.Empty;
+            if (Input.keyDown(Key.H))
+                maiame += 1f;
+
+
+            if (Input.keyDown(Key.J))
+                maiame -= 1f;
 
             if (!menu.estaEnMenu)
             {
-
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
                     movimientoNave.X = 1;
@@ -259,6 +309,15 @@ namespace TGC.Group.Model
                     if (movimientoZ > movimientoMaximoZ)
                         movimientoZ -= factorMovimientoZ * 3;
                     navePrincipal.GastarFuel(1.5f, hud);
+                    movimientoNave.Z = movimientoZ;
+                    cant_pasadas = 3;
+                }
+                else
+                    cant_pasadas = 2;
+
+                if ((Input.keyDown(Key.Up) || Input.keyDown(Key.S)) && !Input.keyDown(Key.LeftShift))
+                {
+                    cant_pasadas = 0;
 
                 }
                 /*if (movimientoZ < movimientoBaseZ)
@@ -418,32 +477,270 @@ namespace TGC.Group.Model
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
+
+
             PostUpdate();
         }
 
+        public void renderescena(Microsoft.DirectX.Direct3D.Device d3dDevice)
+        {
+
+            d3dDevice.BeginScene();
+            skyBox.Render();
+
+
+            //Seteo el effect del mesh de la nave.
+            navePrincipal.ActionOnNave(AplicarLuz);
+            navePrincipal.ActionOnNave(nave =>
+            {
+                nave.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
+                nave.Technique = "DIFFUSE_MAP";
+            }
+            );
+            this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
+            navePrincipal.Render();
+
+
+            escenarios.ForEach(e => {
+                e.ForEachMesh(AplicarLuz);
+            });
+
+
+
+            this.escenarios.ForEach((es) => {
+                es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
+                es.Render();
+            });
+
+
+
+            //this.navePrincipal.Render();
+
+            enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
+            {
+                enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
+                enemigo.Render();
+            }
+            );
+
+            if (menu.estaEnMenu)
+            {
+                menu.Render(ElapsedTime, drawer);
+            }
+            else
+            {
+                hud.Render(ElapsedTime, drawer);
+            }
+
+            d3dDevice.EndScene();
+        }
+
+
+        bool save = false;
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
-        ///     Escribir aquí todo el código referido al renderizado.
+        ///     Escribir aquí todo el código referido al ren|rendederizado.
         ///     Borrar todo lo que no haga falta.
         /// </summary>
         public override void Render()
         {
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
-            PreRender();
+            ClearTextures();
 
-            skyBox.Render();
-            sol.Render();
+            //Cargamos el Render Targer al cual se va a dibujar la escena 3D. Antes nos guardamos el surface original
+            //En vez de dibujar a la pantalla, dibujamos a un buffer auxiliar, nuestro Render Target.
 
-            //Seteo el effect del mesh de la nave.
-            navePrincipal.ActionOnNave(AplicarLuz);
+            var d3dDevice = D3DDevice.Instance.Device;
 
-            escenarios.ForEach(e =>
+            var superficieVieja = d3dDevice.GetRenderTarget(0);
+            var superficieEscena = this.escena.GetSurfaceLevel(0);
+            depthStencilOld = d3dDevice.DepthStencilSurface;
+            d3dDevice.DepthStencilSurface = depthStencil;
+
+            d3dDevice.SetRenderTarget(0, superficieEscena);
+            // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
+            // por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video)
+            d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+
+
+            renderescena(d3dDevice);
+
+            superficieEscena.Dispose();
+
+
+            var superficieGlow = this.propulsores4.GetSurfaceLevel(0);
+            d3dDevice.SetRenderTarget(0, superficieGlow);
+            // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
+            // por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video)
+            d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+
+            d3dDevice.BeginScene();
+
+            navePrincipal.ActionOnNave(nave =>
             {
-                e.ForEachMesh(AplicarLuz);
-            });
+                nave.Technique = "corte";
+            }
+            );
+            navePrincipal.Render();
+            d3dDevice.EndScene();
+
+            superficieGlow.Dispose();
+
+            if (save)
+            {
+                TextureLoader.Save(this.MediaDir + "corte.bmp", ImageFileFormat.Bmp, this.propulsores);
+            }
+
+            if (cant_pasadas > 0)
+            {
+                /*
+                  Si se activa el siguiente efecto mata aun mas a la gpu, la realidad es que no agrega mucho porque 
+                  degrada el color de la textura un poco asi que se puede dejar apagado para que no consuma. si se enciende hacer que
+                  la textura de corte se grabe en propulsores en vez de propulsores4.
+                  */
+                //superficieGlow = propulsores4.GetSurfaceLevel(0);
+                //d3dDevice.SetRenderTarget(0, superficieGlow);
+                //// Probar de comentar esta linea, para ver como se produce el fallo en el ztest
+                //// por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video
+                //d3dDevice.BeginScene();
+                //blurEffect.Technique = "DownFilter4";
+                //d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
+                //d3dDevice.SetStreamSource(0, screenQuadVB, 0);
+                //blurEffect.SetValue("g_RenderTarget", propulsores);
+                ////DefaultTechnique
 
 
-            DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 30, Color.White);
+
+                //d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+                //blurEffect.Begin(FX.None);
+                //blurEffect.BeginPass(0);
+                //d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                //blurEffect.EndPass();
+                //blurEffect.End();
+                //superficieGlow.Dispose();
+                //if (save)
+                //{
+                //    TextureLoader.Save(this.MediaDir + "downfilter.bmp", ImageFileFormat.Bmp, propulsores4);
+                //}
+                //d3dDevice.EndScene();
+
+                d3dDevice.DepthStencilSurface = depthStencilOld;
+
+
+                for (var P = 0; P < cant_pasadas; ++P)
+                {
+                    //save = true;
+                    // Gaussian blur Horizontal
+                    // -----------------------------------------------------
+                    //pSurf = g_pRenderTarget4Aux.GetSurfaceLevel(0);
+                    //device.SetRenderTarget(0, pSurf);
+                    // dibujo el quad pp dicho :
+
+                    superficieGlow = propulsores4Aux.GetSurfaceLevel(0);
+                    d3dDevice.SetRenderTarget(0, superficieGlow);
+
+                    d3dDevice.BeginScene();
+                    blurEffect.Technique = "GaussianBlurSeparable";
+                    d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
+                    d3dDevice.SetStreamSource(0, screenQuadVB, 0);
+                    blurEffect.SetValue("g_RenderTarget", propulsores4);
+
+                    d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+                    blurEffect.Begin(FX.None);
+                    blurEffect.BeginPass(0);
+                    d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                    blurEffect.EndPass();
+                    blurEffect.End();
+                    superficieGlow.Dispose();
+                    if (save)
+                    {
+                        TextureLoader.Save(this.MediaDir + "rt_h_" + P + ".bmp", ImageFileFormat.Bmp, propulsores4);
+                    }
+                    d3dDevice.EndScene();
+
+                    //pSurf = g_pRenderTarget4.GetSurfaceLevel(0);
+                    d3dDevice.SetRenderTarget(0, superficieGlow);
+                    superficieGlow.Dispose();
+
+                    //  Gaussian blur Vertical
+                    // -----------------------------------------------------
+                    //save = true;
+                    superficieGlow = propulsores4.GetSurfaceLevel(0);
+                    d3dDevice.SetRenderTarget(0, superficieGlow);
+
+                    d3dDevice.BeginScene();
+                    blurEffect.Technique = "GaussianBlurSeparable";
+                    d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
+                    d3dDevice.SetStreamSource(0, screenQuadVB, 0);
+                    blurEffect.SetValue("g_RenderTarget", propulsores4Aux);
+
+                    d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+                    blurEffect.Begin(FX.None);
+                    blurEffect.BeginPass(1);
+                    d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                    blurEffect.EndPass();
+                    blurEffect.End();
+                    if (save)
+                    {
+                        TextureLoader.Save(this.MediaDir + "rt_v_" + P + ".bmp", ImageFileFormat.Bmp, propulsores4Aux);
+                        //save = false;
+                    }
+                    d3dDevice.EndScene();
+                }
+            }
+            //Si quisieramos ver que se dibujo, podemos guardar el resultado a una textura en un archivo para debugear su resultado (ojo, es lento)
+            //TextureLoader.Save(this.ShadersDir + "render_target.bmp", ImageFileFormat.Bmp, renderTarget2D);
+
+            //Ahora volvemos a restaurar el Render Target original (osea dibujar a la pantalla)
+            d3dDevice.SetRenderTarget(0, superficieVieja);
+            
+
+            //Luego tomamos lo dibujado antes y lo combinamos con una textura con efecto de alarma
+            postProcess(d3dDevice, ElapsedTime);
+
+            //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
+
+
+        }
+
+
+        public void postProcess(Microsoft.DirectX.Direct3D.Device d3dDevice, float elapsedTime)
+        {
+            d3dDevice.BeginScene();
+            
+            //Cargamos para renderizar el unico modelo que tenemos, un Quad que ocupa toda la pantalla, con la textura de todo lo dibujado antes
+            d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
+            d3dDevice.SetStreamSource(0, screenQuadVB, 0);
+
+            //Ver si el efecto de alarma esta activado, configurar Technique del shader segun corresponda
+
+            //Cargamos parametros en el shader de Post-Procesado
+            this.postProcessMerge.SetValue("escenaTextura", this.escena);
+            if(cant_pasadas == 0)
+                this.postProcessMerge.SetValue("propulsoresTextura", this.propulsores);
+            else
+                this.postProcessMerge.SetValue("propulsoresTextura", this.propulsores4Aux);
+            this.postProcessMerge.Technique = "TechniqueMerge";
+            //Limiamos la pantalla y ejecutamos el render del shader
+            d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            this.postProcessMerge.Begin(FX.None);
+            this.postProcessMerge.BeginPass(0);
+            d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+            this.postProcessMerge.EndPass();
+            this.postProcessMerge.End();
+
+            //Terminamos el renderizado de la escena
+            RenderFPS();
+            RenderAxis();
+            d3dDevice.EndScene();
+            d3dDevice.Present();
+        }
+
+        public void texto()
+        {
+
+            DrawText.drawText("Posicion de la nave: " + maiame, 0, 30, Color.White);
+            DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 500, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.MovementVector), 0, 85, Color.White);
@@ -456,38 +753,9 @@ namespace TGC.Group.Model
             DrawText.drawText("Vida del enemigo 3: " + enemigos[2].Vida, 0, 270, Color.White);
             DrawText.drawText("Menu: " + menu.estaEnMenu, 0, 370, Color.White);
 
+
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
-
-            this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
-
-            this.escenarios.ForEach((es) =>
-            {
-                es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
-                es.Render();
-            });
-
-
-            DrawText.drawText(hola.Count.ToString(), 1750, 500, Color.Red);
-            this.navePrincipal.Render();
-
-            enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
-            {
-                enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
-                enemigo.Render();
-            }
-            );
-            if (menu.estaEnMenu)
-            {
-                menu.Render(ElapsedTime, drawer);
-            }
-            else
-            {
-                hud.Render(ElapsedTime, drawer);
-            }
-            //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
-            PostRender();
         }
-
         public void AplicarLuz(TgcMesh m)
         {
             m.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
@@ -499,12 +767,12 @@ namespace TGC.Group.Model
             m.Effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.White));
             m.Effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));
 
-            m.Effect.SetValue("lightIntensity", 20f);
-            m.Effect.SetValue("lightAttenuation", 0.0099f);
+            m.Effect.SetValue("lightIntensity", 40f);
+            m.Effect.SetValue("lightAttenuation", 0.01f);//0.0099f);
 
             m.Effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
 
-            m.Effect.SetValue("materialSpecularExp", 10);
+            m.Effect.SetValue("materialSpecularExp", 1000);
             m.Effect.SetValue("time", ElapsedTime);
         }
 
