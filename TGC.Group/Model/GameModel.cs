@@ -43,6 +43,7 @@ namespace TGC.Group.Model
         }
 
 
+        List<NaveEnemiga> hola = new List<NaveEnemiga>();
 
         //Scenes
         private NaveEspacial navePrincipal;
@@ -59,11 +60,10 @@ namespace TGC.Group.Model
 
         private float movimientoBaseZ = -2f;
 
-        private float movimientoMaximoZ=-20f;
+        private float movimientoMaximoZ = -7.5f;
 
         private float factorMovimientoZ = 0.25f;
 
-        
         public Torre torreta;
         private TGCBox sol;
         private Menu menu;
@@ -79,8 +79,11 @@ namespace TGC.Group.Model
         //Sounds
         private TgcMp3Player sonidoAmbiente;
         private TgcMp3Player sonidoMenu;
+        private int enemigosAlMismoTiempo = 3;
+        private int dañoEnemigos = 5;
+
         //private TgcMp3Player sonidoLaser;
-        
+
         //Codigo De caja previo
         /*//Caja que se muestra en el ejemplo.
         private TGCBox Box { get; set; }
@@ -99,8 +102,8 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-          
-       
+
+
 
 
             //Device de DirectX para crear primitivas.
@@ -121,15 +124,15 @@ namespace TGC.Group.Model
             skyBox.Size = new TGCVector3(10000, 10000, 18000);
             var texturesPath = MediaDir + "XWing\\Textures\\";
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "space.jpg");
-              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "space.jpg");
-              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "space.jpg");
-              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "space.jpg");
-              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "space.jpg");
-              skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "space.jpg");
-              
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "space.jpg");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "space.jpg");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "space.jpg");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "space.jpg");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "space.jpg");
+
             skyBox.Init();
 
-            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml",10,250);
+            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml", 10, 250);
             this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
@@ -137,13 +140,13 @@ namespace TGC.Group.Model
             //this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,0,-200f),navePrincipal,250f);
             //nave1.ArmaPrincipal.Danio = 1;
 
-            for(int i = 0; i < 5;i++)
+            for (int i = 0; i < 5; i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
-            for (int i = 0; i < 3;i++)
+            for (int i = 0; i < enemigosAlMismoTiempo; i++)
             {
-                enemigos.Add(new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", 5,500, navePrincipal, 500f));
-                enemigos[i].MovementVector = new TGCVector3(0,0,500000f);
+                enemigos.Add(new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", dañoEnemigos, 500, navePrincipal));
+                enemigos[i].MovementVector = new TGCVector3(0, 0, 500000000000f);
                 enemigos[i].CreateOOB();
 
             }
@@ -180,14 +183,14 @@ namespace TGC.Group.Model
                 FileName = MediaDir + "Sound\\musica_menu.mp3"
             };
 
-            sol = TGCBox.fromSize(new TGCVector3(0,5000,1000), new TGCVector3(50, 50, 50), Color.Yellow);
+            sol = TGCBox.fromSize(new TGCVector3(0, 5000, 1000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
             if (menu.playSonidoAmbiente)
-              {
-                    sonidoAmbiente.play(true);
-              }
-             
+            {
+                sonidoAmbiente.play(true);
+            }
+
             //if (menu.playSonidoMenu)
             //{
             //    sonidoMenu.play(true);
@@ -196,7 +199,7 @@ namespace TGC.Group.Model
             //Sonido laser
             //sonidoLaser = new TgcMp3Player();
             //sonidoLaser.FileName = MediaDir + "Music\\laserSound.mp3";
-            
+
             drawer = new Drawer2D();
             hud = new Hud(MediaDir, Input);
         }
@@ -222,7 +225,7 @@ namespace TGC.Group.Model
                 BoundingBox = !BoundingBox;
             }*/
 
-            if(menu.estaEnMenu)
+            if (menu.estaEnMenu)
             {
                 menu.Update(ElapsedTime);
                 PostUpdate();
@@ -235,7 +238,8 @@ namespace TGC.Group.Model
 
             var movimientoNave = TGCVector3.Empty;
 
-            if (!menu.estaEnMenu) {
+            if (!menu.estaEnMenu)
+            {
 
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
@@ -274,6 +278,7 @@ namespace TGC.Group.Model
                     movimientoNave.Z = movimientoZ;
                 }
                 //Movernos adelante y atras, sobre el eje Z.
+                //movimientoNave.Y = Input.keyDown(Key.UpArrow) ? 1 : Input.keyDown(Key.DownArrow) ? -1 : 0;
 
                 //if (movimientoZ < movimientoBaseZ)
                 //{
@@ -319,15 +324,16 @@ namespace TGC.Group.Model
                          sonidoLaser.play(false);
                      }
                      */
-                    this.navePrincipal.Disparar( new TGCVector3( ( ( ( D3DDevice.Instance.Width / 2 ) - Input.Xpos ) * 10 ) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000 ) );
+                    this.navePrincipal.Disparar(new TGCVector3((((D3DDevice.Instance.Width / 2) - Input.Xpos) * 10) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000));
                 }
                 if (Input.keyDown(Key.F))
                 {
                     this.navePrincipal.Disparar();
                 }
                 var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
-                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(); });
+                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(ElapsedTime); });
             }
+            NaveEnemiga.resetearPosiciones();
 
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
@@ -341,8 +347,14 @@ namespace TGC.Group.Model
                 currentScene.UpdateBoundingBox();
                 currentScene = escenarios[nextSceneIndex];
 
-                if (enemigos.FindAll(enemigo => enemigo.EstaViva()&&enemigo.EnemigoEstaAdelante()).Count < 3)
-                    enemigos.FindAll(enemigo => !enemigo.EstaViva()||!enemigo.EnemigoEstaAdelante())[0].Relocate(new TGCVector3(100f, 100f, -3000f));
+                NaveEnemiga.resetearPosiciones();
+
+                // enemigosAlMismoTiempo pueden modificarse para aumentar o disminuir la dificultad, tambien para el modo god
+                if (enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).Count == 0)
+                {
+                    enemigos.FindAll(enemigo => !enemigo.EstaViva() || !enemigo.EnemigoEstaAdelante()).ForEach(nave=>nave.Relocate());
+
+                }
             }
 
             // No permitir que se salga de los limites, el salto que hace para volver es medio brusco, se podria atenuar.
@@ -355,13 +367,14 @@ namespace TGC.Group.Model
 
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
             {
-                //enemigo.Perseguir(ElapsedTime);
+                enemigo.Perseguir(ElapsedTime);
                 enemigo.Update(ElapsedTime);
             }
             );
-            var naves = enemigos.FindAll(enemigo=>enemigo.EstaViva()).Select(e => (NaveEspacial)e).ToList();
+            var naves = enemigos.FindAll(enemigo => enemigo.EstaViva()).Select(e => (NaveEspacial)e).ToList();
             naves.Add(navePrincipal);
-            naves.ForEach(naveActual => {
+            naves.ForEach(naveActual =>
+            {
 
                 //Colision de todas las naves contra el escenario.
                 if (currentScene.CheckCollision(naveActual))
@@ -381,14 +394,14 @@ namespace TGC.Group.Model
                     if (naveActual.CheckIfMyShotsCollided(otraNave))
                         otraNave.Daniar(naveActual.ArmaPrincipal.Danio);
                 });
-                    currentScene.TorresEnRango(navePrincipal.GetPosition()).ForEach(torre =>
+                currentScene.TorresEnRango(navePrincipal.GetPosition()).ForEach(torre =>
+                {
+                    if (torre.CheckIfMyShotsCollided(naveActual))
                     {
-                        if (torre.CheckIfMyShotsCollided(naveActual))
-                        {
-                            naveActual.Daniar(torre.arma.Danio);
-                        }
-                    });
-            
+                        naveActual.Daniar(torre.arma.Danio);
+                    }
+                });
+
             });
 
             if (!navePrincipal.EstaViva())
@@ -424,8 +437,9 @@ namespace TGC.Group.Model
             //Seteo el effect del mesh de la nave.
             navePrincipal.ActionOnNave(AplicarLuz);
 
-            escenarios.ForEach(e => {
-                   e.ForEachMesh(AplicarLuz);
+            escenarios.ForEach(e =>
+            {
+                e.ForEachMesh(AplicarLuz);
             });
 
 
@@ -442,20 +456,21 @@ namespace TGC.Group.Model
             DrawText.drawText("Vida del enemigo 3: " + enemigos[2].Vida, 0, 270, Color.White);
             DrawText.drawText("Menu: " + menu.estaEnMenu, 0, 370, Color.White);
 
-
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
-            
-            this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor *  navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
 
-            this.escenarios.ForEach((es) => {
+            this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
+
+            this.escenarios.ForEach((es) =>
+            {
                 es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
                 es.Render();
             });
 
 
+            DrawText.drawText(hola.Count.ToString(), 1750, 500, Color.Red);
             this.navePrincipal.Render();
 
-            enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
+            enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
             {
                 enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
                 enemigo.Render();
@@ -463,7 +478,7 @@ namespace TGC.Group.Model
             );
             if (menu.estaEnMenu)
             {
-                menu.Render(ElapsedTime,drawer);
+                menu.Render(ElapsedTime, drawer);
             }
             else
             {

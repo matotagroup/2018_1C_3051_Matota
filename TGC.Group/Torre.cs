@@ -16,8 +16,8 @@ public class Torre
     public TGCVector3 rotacion;
 
     public Arma arma;
-    private TGCVector3 turretShotSize = new TGCVector3(3f, 3f, 8f);
-    private float rangoMaximo = 5000f;
+    private TGCVector3 turretShotSize = new TGCVector3(5f, 5f, 10f);
+    private float rangoMaximo = 7500f;
     private TGCVector3 posicionInicialArma;
 
     public static readonly List<string> modelosDisponibles = new List<string> {
@@ -30,7 +30,7 @@ public class Torre
 
         ScaleFactor = new TGCVector3(5f, 5f, 5f);
         posicionArma.TryGetValue(new Tuple<string,float>(this.Scene.SceneName,0), out posicionInicialArma);
-        arma = new Arma(turretShotSize, Color.Green, 1, 350, posicionInicialArma);
+        arma = new Arma(turretShotSize, Color.Green, 10, 250, posicionInicialArma);
 
         this.ActionOnTorre(mesh => {
             mesh.AutoTransform = false;
@@ -62,7 +62,7 @@ public class Torre
 
     public void Disparar(TGCVector3 targetPosition)
     {
-        this.arma.Disparar(targetPosition);
+        this.arma.Disparar(targetPosition+new TGCVector3(0,0,-500f));
     }
 
     public bool EnRango(TGCVector3 targetPosition)
@@ -73,9 +73,9 @@ public class Torre
     {
         this.Scene.Meshes.ForEach(action);
     }
-    public void Update()
+    public void Update(float elapsedTime)
     {
-        this.arma.Update();
+        this.arma.Update(elapsedTime);
     }
     public void Render(bool renderBoundingBox = false)
     {

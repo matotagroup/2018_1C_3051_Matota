@@ -134,7 +134,8 @@ namespace TGC.Group
 
         public TGCVector3 GetOffsetVectorMoved()
         {
-            return offsetEscenarios + new TGCVector3(0, 0, offsetEscenarios.Z * (SceneNumber - 1));
+            //return offsetEscenarios + new TGCVector3(0, 0, offsetEscenarios.Z * (SceneNumber - 1));
+            return offsetEscenarios * SceneNumber;
         }
 
         public void UpdateBoundingBox()
