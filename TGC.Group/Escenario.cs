@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.DirectX.Direct3D;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,6 +11,7 @@ using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Shaders;
 
 namespace TGC.Group
 {
@@ -85,6 +87,10 @@ namespace TGC.Group
             e.MovementVector = e.GetOffsetVectorMoved();
             e.UpdateBoundingBox();
             e.GenerarTorres(MediaDir, 2);
+
+            SetUpTerrainLight();
+            e.ApplyLightEffect();
+
             return e;
         }
 
@@ -147,8 +153,10 @@ namespace TGC.Group
             return torres.FindAll(torre => torre.EnRango(targetPosition));
         }
 
-        public void Render(bool renderBoundingBox = false)
+        public void Render(TGCVector3 lightPosition, TGCVector3 lookFrom, float Elapsedtime, bool renderBoundingBox = false)
         {
+            UpdateTerrainLight(lightPosition, lookFrom, Elapsedtime);
+
             this.ForEachMesh((mesh) => {
                 mesh.Transform = TransformMatix;
                 mesh.Render();
@@ -166,6 +174,39 @@ namespace TGC.Group
                 foreach (KeyValuePair<TGCBox, TGCVector3> entry in notDeathfulBB)
                     entry.Key.BoundingBox.Render();
             }
+        }
+
+        public void ApplyLightEffect()
+        {
+            //Unimos todos los meshes que hay en un escenario en una lista y les aplicamos el effect.
+            Scene.Meshes.Union(torres.SelectMany(t => t.Scene.Meshes)).ToList().ForEach(m =>  m.Effect = TgcShaders.Instance.TgcMeshPointLightShader );
+        }
+
+        //En caso que el TgcMeshPointLightShader shader se reutilizara en otro lado habria que poner este metodo al principio del render para que 
+        // vuelva a poner los valores en lo que nosotros queremos, como hacemos con UpdateTerrainLight.
+        public static void SetUpTerrainLight()
+        {
+            var effect = TgcShaders.Instance.TgcMeshPointLightShader;
+
+            effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.Black));
+            effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
+            effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.White));
+            effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));
+
+            effect.SetValue("lightIntensity", 40f);
+            effect.SetValue("lightAttenuation", 0.01f);//0.0099f);
+
+            effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
+
+            effect.SetValue("materialSpecularExp", 1000);
+        }
+
+        public void UpdateTerrainLight(TGCVector3 lightPosition, TGCVector3 lookFrom, float ElapsedTime)
+        {
+            var effect = TgcShaders.Instance.TgcMeshPointLightShader;
+            effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(lightPosition));
+            effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(lookFrom));
+            effect.SetValue("time", ElapsedTime);
         }
 
         public TGCMatrix RotationMatrix()

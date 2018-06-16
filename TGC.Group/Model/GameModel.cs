@@ -44,7 +44,7 @@ namespace TGC.Group.Model
         float maiame = 0;
 
 
-        private Texture escena, propulsores, propulsores4, propulsores4Aux;
+        private Texture escena, propulsores, propulsoresBlurAux, propulsoresBlurAux2;
         private VertexBuffer screenQuadVB;
         private Microsoft.DirectX.Direct3D.Effect postProcessMerge, blurEffect;
         private int cant_pasadas = 2;
@@ -131,10 +131,10 @@ namespace TGC.Group.Model
             propulsores = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
                 D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
-            propulsores4 = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
+            propulsoresBlurAux = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
                 D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight , 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
-            propulsores4Aux = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
+            propulsoresBlurAux2 = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
                 D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight , 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
             //Device de DirectX para crear primitivas.
@@ -455,7 +455,7 @@ namespace TGC.Group.Model
             }
 
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
-            this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
+            //this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
 
@@ -464,7 +464,7 @@ namespace TGC.Group.Model
             PostUpdate();
         }
 
-        public void renderescena(Microsoft.DirectX.Direct3D.Device d3dDevice)
+        public void RendeScene(Microsoft.DirectX.Direct3D.Device d3dDevice)
         {
 
             d3dDevice.BeginScene();
@@ -472,25 +472,19 @@ namespace TGC.Group.Model
 
 
             //Seteo el effect del mesh de la nave.
-            navePrincipal.ActionOnNave(AplicarLuz);
-            navePrincipal.ActionOnNave(nave =>
-            {
-                nave.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
-                nave.Technique = "DIFFUSE_MAP";
-            }
-            );
+            navePrincipal.ActionOnNave(SpaceshipsLight);
+            //navePrincipal.ActionOnNave(nave =>
+            //{
+            //    nave.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
+            //    nave.Technique = "DIFFUSE_MAP";
+            //}
+            //);
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
             navePrincipal.Render();
 
-
-            escenarios.ForEach(e => {
-                e.ForEachMesh(AplicarLuz);
-            });
-
-
             this.escenarios.ForEach((es) => {
                 es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
-                es.Render();
+                es.Render(sol.Position, Camara.Position, ElapsedTime);
             });
 
 
@@ -543,12 +537,12 @@ namespace TGC.Group.Model
             d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
 
 
-            renderescena(d3dDevice);
+            RendeScene(d3dDevice);
 
             superficieEscena.Dispose();
 
 
-            var superficieGlow = this.propulsores4.GetSurfaceLevel(0);
+            var superficieGlow = this.propulsoresBlurAux.GetSurfaceLevel(0);
             d3dDevice.SetRenderTarget(0, superficieGlow);
             // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
             // por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video)
@@ -558,9 +552,11 @@ namespace TGC.Group.Model
 
             navePrincipal.ActionOnNave(nave =>
             {
+                
                 nave.Technique = "corte";
             }
             );
+
             navePrincipal.Render();
             d3dDevice.EndScene();
 
@@ -576,21 +572,17 @@ namespace TGC.Group.Model
                 /*
                   Si se activa el siguiente efecto mata aun mas a la gpu, la realidad es que no agrega mucho porque 
                   degrada el color de la textura un poco asi que se puede dejar apagado para que no consuma. si se enciende hacer que
-                  la textura de corte se grabe en propulsores en vez de propulsores4.
+                  la textura de corte se grabe en propulsores en vez de propulsoresbluraux.
                   */
                 //superficieGlow = propulsores4.GetSurfaceLevel(0);
                 //d3dDevice.SetRenderTarget(0, superficieGlow);
-                //// Probar de comentar esta linea, para ver como se produce el fallo en el ztest
-                //// por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video
+
                 //d3dDevice.BeginScene();
                 //blurEffect.Technique = "DownFilter4";
                 //d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
                 //d3dDevice.SetStreamSource(0, screenQuadVB, 0);
                 //blurEffect.SetValue("g_RenderTarget", propulsores);
-                ////DefaultTechnique
-
-
-
+                
                 //d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
                 //blurEffect.Begin(FX.None);
                 //blurEffect.BeginPass(0);
@@ -616,14 +608,14 @@ namespace TGC.Group.Model
                     //device.SetRenderTarget(0, pSurf);
                     // dibujo el quad pp dicho :
 
-                    superficieGlow = propulsores4Aux.GetSurfaceLevel(0);
+                    superficieGlow = propulsoresBlurAux2.GetSurfaceLevel(0);
                     d3dDevice.SetRenderTarget(0, superficieGlow);
 
                     d3dDevice.BeginScene();
                     blurEffect.Technique = "GaussianBlurSeparable";
                     d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
                     d3dDevice.SetStreamSource(0, screenQuadVB, 0);
-                    blurEffect.SetValue("g_RenderTarget", propulsores4);
+                    blurEffect.SetValue("g_RenderTarget", propulsoresBlurAux);
 
                     d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
                     blurEffect.Begin(FX.None);
@@ -634,7 +626,7 @@ namespace TGC.Group.Model
                     superficieGlow.Dispose();
                     if (save)
                     {
-                        TextureLoader.Save(this.MediaDir + "rt_h_" + P + ".bmp", ImageFileFormat.Bmp, propulsores4);
+                        TextureLoader.Save(this.MediaDir + "rt_h_" + P + ".bmp", ImageFileFormat.Bmp, propulsoresBlurAux);
                     }
                     d3dDevice.EndScene();
 
@@ -645,14 +637,14 @@ namespace TGC.Group.Model
                     //  Gaussian blur Vertical
                     // -----------------------------------------------------
                     //save = true;
-                    superficieGlow = propulsores4.GetSurfaceLevel(0);
+                    superficieGlow = propulsoresBlurAux.GetSurfaceLevel(0);
                     d3dDevice.SetRenderTarget(0, superficieGlow);
 
                     d3dDevice.BeginScene();
                     blurEffect.Technique = "GaussianBlurSeparable";
                     d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
                     d3dDevice.SetStreamSource(0, screenQuadVB, 0);
-                    blurEffect.SetValue("g_RenderTarget", propulsores4Aux);
+                    blurEffect.SetValue("g_RenderTarget", propulsoresBlurAux2);
 
                     d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
                     blurEffect.Begin(FX.None);
@@ -662,7 +654,7 @@ namespace TGC.Group.Model
                     blurEffect.End();
                     if (save)
                     {
-                        TextureLoader.Save(this.MediaDir + "rt_v_" + P + ".bmp", ImageFileFormat.Bmp, propulsores4Aux);
+                        TextureLoader.Save(this.MediaDir + "rt_v_" + P + ".bmp", ImageFileFormat.Bmp, propulsoresBlurAux2);
                         //save = false;
                     }
                     d3dDevice.EndScene();
@@ -676,7 +668,7 @@ namespace TGC.Group.Model
             
 
             //Luego tomamos lo dibujado antes y lo combinamos con una textura con efecto de alarma
-            postProcess(d3dDevice, ElapsedTime);
+            RenderOnScreen(d3dDevice, ElapsedTime);
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
 
@@ -684,7 +676,7 @@ namespace TGC.Group.Model
         }
 
 
-        public void postProcess(Microsoft.DirectX.Direct3D.Device d3dDevice, float elapsedTime)
+        public void RenderOnScreen(Microsoft.DirectX.Direct3D.Device d3dDevice, float elapsedTime)
         {
             d3dDevice.BeginScene();
             
@@ -699,7 +691,7 @@ namespace TGC.Group.Model
             if(cant_pasadas == 0)
                 this.postProcessMerge.SetValue("propulsoresTextura", this.propulsores);
             else
-                this.postProcessMerge.SetValue("propulsoresTextura", this.propulsores4Aux);
+                this.postProcessMerge.SetValue("propulsoresTextura", this.propulsoresBlurAux2);
             this.postProcessMerge.Technique = "TechniqueMerge";
             //Limiamos la pantalla y ejecutamos el render del shader
             d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
@@ -716,7 +708,7 @@ namespace TGC.Group.Model
             d3dDevice.Present();
         }
 
-        public void texto()
+        public void RenderDebugText()
         {
 
             DrawText.drawText("Posicion de la nave: " + maiame, 0, 30, Color.White);
@@ -736,24 +728,22 @@ namespace TGC.Group.Model
 
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
         }
-        public void AplicarLuz(TgcMesh m)
+
+        //El Phong Shader le da un aspecto mas metalico a las cosas, es lo que se pide para las naves.
+        public void SpaceshipsLight(TgcMesh m)
         {
             m.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
+            m.Technique = "DIFFUSE_MAP_PHONG";
+
             m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
-            m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(Camara.Position));
+            m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
+            m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));//Color.FromArgb(255, 150, 150, 150)
 
-            m.Effect.SetValue("materialAmbientColor", ColorValue.FromColor(Color.Black));
-            m.Effect.SetValue("materialDiffuseColor", ColorValue.FromColor(Color.White));
-            m.Effect.SetValue("materialSpecularColor", ColorValue.FromColor(Color.White));
-            m.Effect.SetValue("materialEmissiveColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));
 
-            m.Effect.SetValue("lightIntensity", 40f);
-            m.Effect.SetValue("lightAttenuation", 0.01f);//0.0099f);
+            m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.White)); //Color.FromArgb(255, 99, 72, 7)
+            m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
 
-            m.Effect.SetValue("lightColor", ColorValue.FromColor(Color.White));
-
-            m.Effect.SetValue("materialSpecularExp", 1000);
-            m.Effect.SetValue("time", ElapsedTime);
+            m.Effect.SetValue("specularExp", 50f);
         }
 
         /// <summary>
