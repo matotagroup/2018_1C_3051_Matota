@@ -28,7 +28,7 @@ namespace TGC.Group
         private bool shouldRight90Spin = false;
         private bool stopSpinning = false;
         public Arma ArmaPrincipal { get; private set; }
-        private TGCVector3 shipShotSize = new TGCVector3(0.4f, 0.3f, 8f);
+        private TGCVector3 shipShotSize = new TGCVector3(2f, 2f, 8f);
 
 
         private Stopwatch coolDownMovimientos = null;
@@ -272,7 +272,7 @@ namespace TGC.Group
             else if (shouldRight90Spin)
                 this.PerformRight90Spin(ElapsedTime);
 
-            this.ArmaPrincipal.Update();
+            this.ArmaPrincipal.Update(ElapsedTime);
 
         }
 

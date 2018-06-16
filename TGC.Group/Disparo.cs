@@ -22,7 +22,7 @@ namespace TGC.Group
         private TGCVector3 MovementDirection;
 
 
-        private const float velocidadDisparo = 75f;
+        private const float velocidadDisparo = 1500f;
 
         public TgcBoundingOrientedBox OOB
         {
@@ -67,7 +67,7 @@ namespace TGC.Group
             //modelo.BoundingBox.transform(TGCMatrix.RotationYawPitchRoll(modelo.Rotation.Y,modelo.Rotation.X,0));
         }
 
-        public void Live(List<Disparo> disparos)
+        public void Live(List<Disparo> disparos, float elapsedTime)
         {
             if (vida.Elapsed.TotalMilliseconds >= tiempoDisparo)
             {
@@ -78,8 +78,8 @@ namespace TGC.Group
                 disparos.Remove(this);
             }
 
-            OOB.move(MovementDirection * velocidadDisparo);
-            modelo.Move(MovementDirection * velocidadDisparo);
+            OOB.move(MovementDirection * velocidadDisparo*elapsedTime);
+            modelo.Move(MovementDirection * velocidadDisparo*elapsedTime);
         }
 
         public bool HayColision(NaveEspacial nave)

@@ -66,12 +66,12 @@ namespace TGC.Group
             return cols.Count() > 0;
         }
 
-        public void Update()
+        public void Update(float elapsedTime)
         {
 
             //hay que hacer un for feo para no dar tanta vuelta con el tema de la modificacion de la lista en tiempo de ejecucion
             for (var x = 0; x < disparos.Count; x++)
-                disparos[x].Live(this.disparos);
+                disparos[x].Live(this.disparos, elapsedTime);
         }
 
 

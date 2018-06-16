@@ -44,10 +44,18 @@ namespace TGC.Group.Model
         float maiame = 0;
 
 
+
         private Texture escena, propulsores, propulsoresBlurAux, propulsoresBlurAux2;
+
+
+        List<NaveEnemiga> hola = new List<NaveEnemiga>();
+
+
+
         private VertexBuffer screenQuadVB;
         private Microsoft.DirectX.Direct3D.Effect postProcessMerge, blurEffect;
         private int cant_pasadas = 2;
+
         //Scenes
         private NaveEspacial navePrincipal;
         private List<Escenario> escenarios;
@@ -63,10 +71,9 @@ namespace TGC.Group.Model
 
         private float movimientoBaseZ = -2f;
 
-        private float movimientoMaximoZ = -20f;
+        private float movimientoMaximoZ = -7.5f;
 
         private float factorMovimientoZ = 0.25f;
-
 
         public Torre torreta;
         private TGCBox sol;
@@ -84,6 +91,9 @@ namespace TGC.Group.Model
         //Sounds
         private TgcMp3Player sonidoAmbiente;
         private TgcMp3Player sonidoMenu;
+
+        private int enemigosAlMismoTiempo = 3;
+        private int dañoEnemigos = 5;
 
         //private TgcMp3Player sonidoLaser;
 
@@ -180,10 +190,10 @@ namespace TGC.Group.Model
             for (int i = 0; i < 5; i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < enemigosAlMismoTiempo; i++)
             {
-                enemigos.Add(new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", 5, 500, navePrincipal, 500f));
-                enemigos[i].MovementVector = new TGCVector3(0, 0, 500000f);
+                enemigos.Add(new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", dañoEnemigos, 500, navePrincipal));
+                enemigos[i].MovementVector = new TGCVector3(0, 0, 500000000000f);
                 enemigos[i].CreateOOB();
 
             }
@@ -225,6 +235,7 @@ namespace TGC.Group.Model
             menu = new Menu(MediaDir, Input);
             if (menu.playSonidoAmbiente)
             {
+
                 //sonidoAmbiente.play(true);
             }
 
@@ -277,6 +288,7 @@ namespace TGC.Group.Model
             if (Input.keyDown(Key.H))
                 maiame += 1f;
 
+
             if (Input.keyDown(Key.J))
                 maiame -= 1f;
 
@@ -328,6 +340,7 @@ namespace TGC.Group.Model
                     movimientoNave.Z = movimientoZ;
                 }
                 //Movernos adelante y atras, sobre el eje Z.
+                //movimientoNave.Y = Input.keyDown(Key.UpArrow) ? 1 : Input.keyDown(Key.DownArrow) ? -1 : 0;
 
                 //if (movimientoZ < movimientoBaseZ)
                 //{
@@ -380,8 +393,9 @@ namespace TGC.Group.Model
                     this.navePrincipal.Disparar();
                 }
                 var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
-                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(); });
+                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(ElapsedTime); });
             }
+            NaveEnemiga.resetearPosiciones();
 
             if (!TgcCollisionUtils.testObbAABB(this.navePrincipal.OOB, currentScene.Scene.BoundingBox))
             {
@@ -395,8 +409,14 @@ namespace TGC.Group.Model
                 currentScene.UpdateBoundingBox();
                 currentScene = escenarios[nextSceneIndex];
 
-                if (enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).Count < 3)
-                    enemigos.FindAll(enemigo => !enemigo.EstaViva() || !enemigo.EnemigoEstaAdelante())[0].Relocate(new TGCVector3(100f, 100f, -3000f));
+                NaveEnemiga.resetearPosiciones();
+
+                // enemigosAlMismoTiempo pueden modificarse para aumentar o disminuir la dificultad, tambien para el modo god
+                if (enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).Count == 0)
+                {
+                    enemigos.FindAll(enemigo => !enemigo.EstaViva() || !enemigo.EnemigoEstaAdelante()).ForEach(nave=>nave.Relocate());
+
+                }
             }
 
             // No permitir que se salga de los limites, el salto que hace para volver es medio brusco, se podria atenuar.
@@ -409,13 +429,14 @@ namespace TGC.Group.Model
 
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
             {
-                //enemigo.Perseguir(ElapsedTime);
+                enemigo.Perseguir(ElapsedTime);
                 enemigo.Update(ElapsedTime);
             }
             );
             var naves = enemigos.FindAll(enemigo => enemigo.EstaViva()).Select(e => (NaveEspacial)e).ToList();
             naves.Add(navePrincipal);
-            naves.ForEach(naveActual => {
+            naves.ForEach(naveActual =>
+            {
 
                 //Colision de todas las naves contra el escenario.
                 if (currentScene.CheckCollision(naveActual))
@@ -488,9 +509,10 @@ namespace TGC.Group.Model
             });
 
 
+
             //this.navePrincipal.Render();
 
-            enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
+            enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
             {
                 enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
                 enemigo.Render();
