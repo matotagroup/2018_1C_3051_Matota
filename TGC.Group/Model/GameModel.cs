@@ -41,19 +41,14 @@ namespace TGC.Group.Model
             Name = Game.Default.Name;
             Description = Game.Default.Description;
         }
-        float maiame = 0;
-
 
 
         private Texture escena, propulsores, propulsoresBlurAux, propulsoresBlurAux2;
 
-
-        List<NaveEnemiga> hola = new List<NaveEnemiga>();
-
-
-
         private VertexBuffer screenQuadVB;
         private Microsoft.DirectX.Direct3D.Effect postProcessMerge, blurEffect;
+
+        //define la cantidad de pasadas que se van al gaussian blur, mientras mas pasadas mas blur pero ojo porque consume mas.
         private int cant_pasadas = 2;
 
         //Scenes
@@ -95,6 +90,32 @@ namespace TGC.Group.Model
         private int enemigosAlMismoTiempo = 3;
         private int dañoEnemigos = 5;
 
+
+        private List<TGCBox> estrellasS = new List<TGCBox>
+        {
+            TGCBox.fromSize(new TGCVector3(-5000, 1000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(500, 2000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(5000, 2500, -10000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(3000, 1000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-3000, 2000, -11000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-8000, 1500, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-4500, 800, -9000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-9000, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(8000, 1500, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(4500, 800, -9000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(9000, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(11500, 1500, -14000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(10000, 100, -10000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(9000, 100, -11100), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(8500, 2000, -9000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-9000, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-9000, 900, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(0, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-1000, 2100, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(1000, 3000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-2000, 300, -13000), new TGCVector3(15,15,15), Color.White)
+        };
+
         //private TgcMp3Player sonidoLaser;
 
         //Codigo De caja previo
@@ -115,7 +136,7 @@ namespace TGC.Group.Model
         /// </summary>
         public override void Init()
         {
-
+            estrellasS.ForEach(e => e.AutoTransform = true);
             CustomVertex.PositionTextured[] screenQuadVertices =
             {
                 new CustomVertex.PositionTextured(-1, 1, 1, 0, 0),
@@ -230,7 +251,7 @@ namespace TGC.Group.Model
                 FileName = MediaDir + "Sound\\musica_menu.mp3"
             };
 
-            sol = TGCBox.fromSize(new TGCVector3(0, 5000, 1000), new TGCVector3(50, 50, 50), Color.Yellow);
+            sol = TGCBox.fromSize(new TGCVector3(0, 5000, 4000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
             if (menu.playSonidoAmbiente)
@@ -252,10 +273,6 @@ namespace TGC.Group.Model
             hud = new Hud(MediaDir, Input);
         }
 
-        public void InifinityChecker()
-        {
-
-        }
 
         /// <summary>
         ///     Se llama en cada frame.
@@ -285,12 +302,6 @@ namespace TGC.Group.Model
             }
 
             var movimientoNave = TGCVector3.Empty;
-            if (Input.keyDown(Key.H))
-                maiame += 1f;
-
-
-            if (Input.keyDown(Key.J))
-                maiame -= 1f;
 
             if (!menu.estaEnMenu)
             {
@@ -484,11 +495,12 @@ namespace TGC.Group.Model
             }
 
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
-            //this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
+            this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
+            estrellasS.ForEach(e => {
+                e.Position += new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000;
+            });
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
-
-
 
             PostUpdate();
         }
@@ -497,33 +509,25 @@ namespace TGC.Group.Model
         {
 
             d3dDevice.BeginScene();
-            skyBox.Render();
+            //skyBox.Render();
 
+            estrellasS.ForEach(e => e.Render());
 
-            //Seteo el effect del mesh de la nave.
-            navePrincipal.ActionOnNave(SpaceshipsLight);
-            //navePrincipal.ActionOnNave(nave =>
-            //{
-            //    nave.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
-            //    nave.Technique = "DIFFUSE_MAP";
-            //}
-            //);
+            // En esta pasada le aplicamos el efecto de luz metalica. con los enemigos no hace falta esto porque nunca cambian la technique.
+            navePrincipal.ActionOnNave(nave => nave.Technique = "DIFFUSE_MAP_PHONG");
+
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
-            navePrincipal.Render();
+            navePrincipal.Render(sol.Position, Camara.Position);
 
             this.escenarios.ForEach((es) => {
                 es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
                 es.Render(sol.Position, Camara.Position, ElapsedTime);
             });
 
-
-
-            //this.navePrincipal.Render();
-
             enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
             {
                 enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
-                enemigo.Render();
+                enemigo.Render(sol.Position, Camara.Position);
             }
             );
 
@@ -539,8 +543,9 @@ namespace TGC.Group.Model
             d3dDevice.EndScene();
         }
 
-
+        //SOLO PARA TESTING!!!!!!!!!!!!!! SI SE PONE EN TRUE SE GUARDAN LAS TEXTURAS QUE SE VAN GENERANDO EN EL MEDIA DIR.
         bool save = false;
+
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
         ///     Escribir aquí todo el código referido al ren|rendederizado.
@@ -558,8 +563,9 @@ namespace TGC.Group.Model
 
             var superficieVieja = d3dDevice.GetRenderTarget(0);
             var superficieEscena = this.escena.GetSurfaceLevel(0);
+
             depthStencilOld = d3dDevice.DepthStencilSurface;
-            d3dDevice.DepthStencilSurface = depthStencil;
+            //d3dDevice.DepthStencilSurface = depthStencil;
 
             d3dDevice.SetRenderTarget(0, superficieEscena);
             // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
@@ -571,23 +577,23 @@ namespace TGC.Group.Model
 
             superficieEscena.Dispose();
 
+            if (save)
+            {
+                TextureLoader.Save(this.MediaDir + "escena.bmp", ImageFileFormat.Bmp, this.escena);
+            }
+
 
             var superficieGlow = this.propulsoresBlurAux.GetSurfaceLevel(0);
             d3dDevice.SetRenderTarget(0, superficieGlow);
-            // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
-            // por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video)
+
             d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
 
             d3dDevice.BeginScene();
 
-            navePrincipal.ActionOnNave(nave =>
-            {
-                
-                nave.Technique = "corte";
-            }
-            );
+            navePrincipal.ActionOnNave(nave => nave.Technique = "CortePropulsores");
 
-            navePrincipal.Render();
+            navePrincipal.Render(TGCVector3.Empty, TGCVector3.Empty);
+            estrellasS.ForEach(e => e.Render());
             d3dDevice.EndScene();
 
             superficieGlow.Dispose();
@@ -600,10 +606,12 @@ namespace TGC.Group.Model
             if (cant_pasadas > 0)
             {
                 /*
-                  Si se activa el siguiente efecto mata aun mas a la gpu, la realidad es que no agrega mucho porque 
-                  degrada el color de la textura un poco asi que se puede dejar apagado para que no consuma. si se enciende hacer que
+                  Si se activa el siguiente efecto mata bastante a la gpu, la realidad es que no agrega mucho porque 
+                  degrada el color de la textura un poco y considerando que solo son 4 propulsores no lo vale,
+                  asi que se puede dejar apagado para que no consuma. si se enciende hacer que
                   la textura de corte se grabe en propulsores en vez de propulsoresbluraux.
                   */
+
                 //superficieGlow = propulsores4.GetSurfaceLevel(0);
                 //d3dDevice.SetRenderTarget(0, superficieGlow);
 
@@ -741,7 +749,6 @@ namespace TGC.Group.Model
         public void RenderDebugText()
         {
 
-            DrawText.drawText("Posicion de la nave: " + maiame, 0, 30, Color.White);
             DrawText.drawText("Posicion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Position), 0, 500, Color.White);
             DrawText.drawText("Rotacion de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.Scene.Meshes[0].Rotation), 0, 45, Color.White);
             DrawText.drawText("Scale de la nave: " + TGCVector3.PrintVector3(this.navePrincipal.RotationVector), 0, 55, Color.White);
@@ -757,23 +764,6 @@ namespace TGC.Group.Model
 
 
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
-        }
-
-        //El Phong Shader le da un aspecto mas metalico a las cosas, es lo que se pide para las naves.
-        public void SpaceshipsLight(TgcMesh m)
-        {
-            m.Effect = TgcShaders.Instance.TgcMeshPointLightShader;
-            m.Technique = "DIFFUSE_MAP_PHONG";
-
-            m.Effect.SetValue("lightPosition", TGCVector3.Vector3ToFloat4Array(sol.Position));
-            m.Effect.SetValue("eyePosition", TGCVector3.Vector3ToFloat4Array(TGCVector3.One));
-            m.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.FromArgb(255, 85, 85, 85)));//Color.FromArgb(255, 150, 150, 150)
-
-
-            m.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.White)); //Color.FromArgb(255, 99, 72, 7)
-            m.Effect.SetValue("specularColor", ColorValue.FromColor(Color.FromArgb(255, 255, 255, 255)));
-
-            m.Effect.SetValue("specularExp", 50f);
         }
 
         /// <summary>

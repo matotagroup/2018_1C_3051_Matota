@@ -39,7 +39,13 @@ static const float Kernel[kernel_size] =
 
 void BlurH(float2 screen_pos : TEXCOORD0, out float4 Color : COLOR)
 {
-    Color = 0;
+    // Esta optimizacion mejora muchisimo los fps porque si el color de la textura es negro (el color del clear screen) entonces hace un discard y se evita muchisimos bucles. se aplica aca y en el vertical.
+    float4 colorbase = tex2D(RenderTarget, screen_pos);
+
+    if (colorbase.x == 0 && colorbase.y == 0 && colorbase.z == 0)
+        discard;
+
+        Color = 0;
     for (int i = 0; i < kernel_size; ++i)
         Color += tex2D(RenderTarget, screen_pos + float2((float) (i - kernel_r) / screen_dx, 0)) * Kernel[i];
     Color.a = 1;
@@ -47,6 +53,12 @@ void BlurH(float2 screen_pos : TEXCOORD0, out float4 Color : COLOR)
 
 void BlurV(float2 screen_pos : TEXCOORD0, out float4 Color : COLOR)
 {
+
+    float4 colorbase = tex2D(RenderTarget, screen_pos);
+
+    if (colorbase.x == 0 && colorbase.y == 0 && colorbase.z == 0)
+        discard;
+
     Color = 0;
     for (int i = 0; i < kernel_size; ++i)
         Color += tex2D(RenderTarget, screen_pos + float2(0, (float) (i - kernel_r) / screen_dy)) * Kernel[i];
