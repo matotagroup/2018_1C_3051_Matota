@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Direct3D;
 using TGC.Core.Input;
 using TGC.Core.Mathematica;
 using TGC.Group.Model.UtilsParaGUI;
@@ -21,14 +22,8 @@ namespace TGC.Group.Model.MenuesImplementados
         private Boton sonidoAmbiente;
         private Boton sonidoDisparos;
 
-        private TGCVector2 posicionAtras = new TGCVector2(100, 800);
-        private TGCVector2 posicionSonidoMenu = new TGCVector2(100, 200);
-        private TGCVector2 posicionSonidoAmbiente = new TGCVector2(100, 400);
-        private TGCVector2 posicionSonidoDisparos = new TGCVector2(100, 600);
-        private TGCVector2 posicionOnSonidoMenu = new TGCVector2(1300, 200);
-        private TGCVector2 posicionOnSonidoAmbiente = new TGCVector2(1300, 400);
-        private TGCVector2 posicionOnSonidoDisparos = new TGCVector2(1300, 600);
-
+        public int W = D3DDevice.Instance.Width;
+        public int H = D3DDevice.Instance.Height;
         private List<Boton> botonesSonidos;
         private List<Simbolo> simbolosSonido;
 
@@ -42,13 +37,20 @@ namespace TGC.Group.Model.MenuesImplementados
             onSonidoDisparos = new Simbolo(MediaDir, "on.png", input);
             onSonidoAmbiente = new Simbolo(MediaDir, "on.png", input);
 
-            atras.Position = posicionAtras;
-            sonidoAmbiente.Position = posicionSonidoAmbiente;
-            sonidoDisparos.Position = posicionSonidoDisparos;
-            sonidoMenu.Position = posicionSonidoMenu;
-            onSonidoMenu.Position = posicionOnSonidoMenu;
-            onSonidoAmbiente.Position = posicionOnSonidoAmbiente;
-            onSonidoDisparos.Position = posicionOnSonidoDisparos;
+            atras.Position = new TGCVector2(75, H / 1.15f);
+            sonidoAmbiente.Position = new TGCVector2(100, H / 3.5f);
+            sonidoDisparos.Position = new TGCVector2(100, H / 2.5f);
+            sonidoMenu.Position = new TGCVector2(100, H / 2f);
+            onSonidoMenu.Position = new TGCVector2(600, H / 2f);
+            onSonidoAmbiente.Position = new TGCVector2(600, H / 3.5f);
+            onSonidoDisparos.Position = new TGCVector2(600, H / 2.5f);
+            sonidoAmbiente.Scaling = new TGCVector2(0.4f, 0.4f);
+            sonidoDisparos.Scaling = new TGCVector2(0.4f, 0.4f);
+            sonidoMenu.Scaling = new TGCVector2(0.4f, 0.4f);
+            onSonidoAmbiente.Scaling = new TGCVector2(0.4f, 0.4f);
+            onSonidoDisparos.Scaling = new TGCVector2(0.4f, 0.4f);
+            onSonidoMenu.Scaling = new TGCVector2(0.4f, 0.4f);
+            atras.Scaling = new TGCVector2(0.4f, 0.4f);
 
             this.botonesSonidos = new List<Boton>();
             botonesSonidos.Add(sonidoMenu);

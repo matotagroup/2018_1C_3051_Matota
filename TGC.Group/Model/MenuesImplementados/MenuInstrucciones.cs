@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TGC.Core.Mathematica;
 using TGC.Core.Input;
 using TGC.Group.Model.UtilsParaGUI;
+using TGC.Core.Direct3D;
 
 namespace TGC.Group.Model.MenuesImplementados
 {
@@ -16,10 +17,8 @@ namespace TGC.Group.Model.MenuesImplementados
         private Simbolo parrafo3;
         private Boton atras;
 
-        private TGCVector2 posicionParrafo1 = new TGCVector2(300, 300);
-        private TGCVector2 posicionParrafo2 = new TGCVector2(300, 400);
-        private TGCVector2 posicionParrafo3 = new TGCVector2(300, 500);
-        private TGCVector2 posicionAtras = new TGCVector2(100, 800);
+        public int W = D3DDevice.Instance.Width;
+        public int H = D3DDevice.Instance.Height;
 
         private List<Simbolo> simbolos;
         public MenuInstrucciones(string MediaDir, TgcD3dInput input)
@@ -29,10 +28,11 @@ namespace TGC.Group.Model.MenuesImplementados
             parrafo3 = new Simbolo(MediaDir, "parrafo3.png", input);
             atras = new Boton(MediaDir, "atras.png", input, "seleccion_atras.png", new AccionAtras());
 
-            parrafo1.Position = posicionParrafo1;
-            parrafo2.Position = posicionParrafo2;
-            parrafo3.Position = posicionParrafo3;
-            atras.Position = posicionAtras;
+            parrafo1.Position = new TGCVector2(W / 7.5f, H / 3f);
+            parrafo2.Position = new TGCVector2(W / 7.5f, H / 2.5f);
+            parrafo3.Position = new TGCVector2(W / 7.5f, H / 2.15f);
+            atras.Position = new TGCVector2(75, H / 1.15f);
+            atras.Scaling = new TGCVector2(0.4f, 0.4f);
 
             simbolos = new List<Simbolo>();
             simbolos.Add(parrafo1);

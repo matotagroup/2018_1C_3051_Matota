@@ -320,11 +320,19 @@ namespace TGC.Group.Model
                 //boost de velocidad con shift
                 if (Input.keyDown(Key.LeftShift))
                 {
-                    if (movimientoZ > movimientoMaximoZ)
-                        movimientoZ -= factorMovimientoZ * 3;
-                    navePrincipal.GastarFuel(1.5f, hud);
-                    movimientoNave.Z = movimientoZ;
-                    cant_pasadas = 3;
+                    navePrincipal.DoSpeedBoost();
+                    if (navePrincipal.shouldSpeedBoost)
+                    {
+                        navePrincipal.GastarFuel(1.5f, hud);
+                        if (movimientoZ > movimientoMaximoZ)
+                            movimientoZ -= factorMovimientoZ * 3;
+                        movimientoNave.Z = movimientoZ;
+                        cant_pasadas = 3;
+                    }
+                    else
+                    {
+                        movimientoNave.Z = movimientoBaseZ;
+                    }
                 }
                 else
                     cant_pasadas = 2;

@@ -49,7 +49,10 @@ namespace TGC.Group
         }
         public TGCVector2 tamanio()
         {
-            return new TGCVector2(this.spriteActual.Bitmap.Width, this.spriteActual.Bitmap.Height);
+            var vec = new TGCVector2(this.spriteActual.Bitmap.Width, this.spriteActual.Bitmap.Height);
+            vec.X *= spriteActual.Scaling.X;
+            vec.Y *= spriteActual.Scaling.Y;
+            return vec;
         }
         public TGCVector2 posicion()
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Direct3D;
 using TGC.Core.Input;
 using TGC.Core.Mathematica;
 using TGC.Group.Model.UtilsParaGUI;
@@ -23,18 +24,8 @@ namespace TGC.Group.Model.MenuesImplementados
         private Simbolo shift;
         private Boton atras;
 
-        private TGCVector2 posicionAccion = new TGCVector2(100, 100);
-        private TGCVector2 posicionTecla = new TGCVector2(800, 100);
-        private TGCVector2 posicionDerecha = new TGCVector2(100, 300);
-        private TGCVector2 posicionD = new TGCVector2(900, 300);
-        private TGCVector2 posicionIzquierda = new TGCVector2(100, 400);
-        private TGCVector2 posicionA = new TGCVector2(900, 400);
-        private TGCVector2 posicionAfterBurn = new TGCVector2(100, 500);
-        private TGCVector2 posicionShift = new TGCVector2(900, 500);
-        private TGCVector2 posicionDisparar = new TGCVector2(100, 600);
-        private TGCVector2 posicionLeftClick = new TGCVector2(900, 600);
-        private TGCVector2 posicionAtras = new TGCVector2(100, 800);
-
+        public int W = D3DDevice.Instance.Width;
+        public int H = D3DDevice.Instance.Height;
         List<Simbolo> simbolos;
 
         public MenuControles(string MediaDir, TgcD3dInput input)
@@ -51,17 +42,29 @@ namespace TGC.Group.Model.MenuesImplementados
             shift = new Simbolo(MediaDir, "shift.png", input);
             atras = new Boton(MediaDir, "atras.png", input, "seleccion_atras.png", new AccionAtras());
 
-            accion.Position = posicionAccion;
-            tecla.Position = posicionTecla;
-            derecha.Position = posicionDerecha;
-            izquierda.Position = posicionIzquierda;
-            afterBurn.Position = posicionAfterBurn;
-            disparar.Position = posicionDisparar;
-            d.Position = posicionD;
-            a.Position = posicionA;
-            left_click.Position = posicionLeftClick;
-            shift.Position = posicionShift;
-            atras.Position = posicionAtras;
+            accion.Scaling = new TGCVector2(0.6f, 0.6f);
+            tecla.Scaling = new TGCVector2(0.6f, 0.6f);
+            derecha.Scaling = new TGCVector2(0.4f, 0.5f);
+            izquierda.Scaling = new TGCVector2(0.4f, 0.5f);
+            afterBurn.Scaling = new TGCVector2(0.4f, 0.5f);
+            d.Scaling = new TGCVector2(0.4f, 0.5f);
+            a.Scaling = new TGCVector2(0.4f, 0.5f);
+            left_click.Scaling = new TGCVector2(0.4f, 0.5f);
+            atras.Scaling = new TGCVector2(0.4f, 0.4f);
+            disparar.Scaling = new TGCVector2(0.4f, 0.4f);
+            shift.Scaling = new TGCVector2(0.4f, 0.4f);
+
+            accion.Position = new TGCVector2(75, H / 5.5f);
+            derecha.Position = new TGCVector2(100, H / 3.25f);
+            izquierda.Position = new TGCVector2(100, H / 2.25f);
+            afterBurn.Position = new TGCVector2(100, H / 1.75f);
+            disparar.Position = new TGCVector2(100, H / 1.45f);
+            atras.Position = new TGCVector2(75, H / 1.15f);
+            d.Position = new TGCVector2(625, H / 3.25f);
+            a.Position = new TGCVector2(625, H / 2.25f);
+            left_click.Position = new TGCVector2(625, H / 1.45f);
+            shift.Position = new TGCVector2(625, H / 1.75f);
+            tecla.Position = new TGCVector2(570, H / 5.5f);
 
             simbolos = new List<Simbolo>();
             simbolos.Add(accion);

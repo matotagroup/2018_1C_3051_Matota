@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TGC.Core.Direct3D;
 using TGC.Core.Input;
 using TGC.Core.Mathematica;
 using TGC.Group.Model.UtilsParaGUI;
@@ -21,6 +22,8 @@ namespace TGC.Group.Model.MenuesImplementados
         private TGCVector2 posicionInstrucciones = new TGCVector2(100, 200);
         private TGCVector2 posicionControles = new TGCVector2(100, 400);
 
+        public int W = D3DDevice.Instance.Width;
+        public int H = D3DDevice.Instance.Height;
         private List<Boton> botonesOpciones;
 
         public MenuOpciones(string MediaDir, TgcD3dInput input)
@@ -30,10 +33,14 @@ namespace TGC.Group.Model.MenuesImplementados
             controles = new Boton(MediaDir, "controles.png", input, "seleccion_controles.png", new AccionControles());
             volver = new Boton(MediaDir, "volver.png", input, "seleccion_volver.png", new AccionVolver());
 
-            audio.Position = posicionAudio;
-            instrucciones.Position = posicionInstrucciones;
-            controles.Position = posicionControles;
-            volver.Position = posicionVolver;
+            instrucciones.Position = new TGCVector2(100, H / 3.25f);
+            audio.Position = new TGCVector2(100, H / 2.25f);
+            controles.Position = new TGCVector2(100, H / 1.75f);
+            volver.Position = new TGCVector2(100, H / 1.25f);
+            instrucciones.Scaling = new TGCVector2(0.5f, 0.6f);
+            audio.Scaling = new TGCVector2(0.6f, 0.6f);
+            controles.Scaling = new TGCVector2(0.6f, 0.6f);
+            volver.Scaling = new TGCVector2(0.4f, 0.4f);
 
             this.botonesOpciones = new List<Boton>();
             botonesOpciones.Add(audio);
