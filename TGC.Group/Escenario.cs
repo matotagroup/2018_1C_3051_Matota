@@ -31,10 +31,18 @@ namespace TGC.Group
         public static readonly TGCVector3 offsetEscenarios = new TGCVector3(0, 0, -8000f);
         public static readonly TGCVector3 defaultScale = new TGCVector3(50f, 200f, 80f);
         private static List<TGCVector4> posicionesTorres = new List<TGCVector4> {
-            new TGCVector4(1799.243f,-946.1815f,1775.645f, FastMath.PI),
-            new TGCVector4(2664,-1099, 120, FastMath.PI),
-            new TGCVector4(662.0941f, -1126.118f, -371.27f, 0),
-            new TGCVector4(-1351,-1100,2112, 0),
+             new TGCVector4(1799.243f,-1200f,1775.645f,FastMath.PI),
+             new TGCVector4(2000,-999, 5000, FastMath.PI),
+             new TGCVector4(2100,-999, -100, FastMath.PI),
+             new TGCVector4(3000,-1099, 600, FastMath.PI),
+             new TGCVector4(2500,-999, -300, FastMath.PI),
+             new TGCVector4(-1351,-1100,2112, 0),
+             new TGCVector4(590f, -1000f, -450f, 0),
+             new TGCVector4(1700,-999, 1000, FastMath.PI),
+             new TGCVector4(300f, -1000f, -1300f, 0),
+             new TGCVector4(350f, -1000f, -3000f, 0),
+             new TGCVector4(-100f, -1000f, -4000f, 0),
+
         };
 
         private static readonly List<TGCBox> boundingBoxesTowers = new List<TGCBox> {
