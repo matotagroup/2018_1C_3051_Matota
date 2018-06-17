@@ -35,10 +35,12 @@ namespace TGC.Group
 
 
         private readonly float COOLDOWNMOVIMIENTOS = 2000;
+        private readonly float COOLDOWNSPEEDBOOST = 1000;
 
         public int Vida { get; protected set; }  = 100;
 
-        public float afterBurnFuel { get; set; } = 100;
+        public float AfterBurnFuel { get; set; } = 100;
+        public bool shouldSpeedBoost = false;
 
         public TgcBoundingOrientedBox OOB
         {
@@ -75,13 +77,23 @@ namespace TGC.Group
 
         public void GastarFuel(float cantUsada, Hud hud)
         {
-            this.afterBurnFuel = Math.Max(this.afterBurnFuel - cantUsada, 0);
-            hud.ReducirFuel(afterBurnFuel);
+            if (AfterBurnFuel < 1)
+            {
+                this.shouldSpeedBoost = false;
+            }
+            else
+            {
+                this.AfterBurnFuel = Math.Max(this.AfterBurnFuel - cantUsada, 0);
+                hud.ReducirFuel(AfterBurnFuel);
+            }
         }
-
+        public void DoSpeedBoost()
+        {
+            OnCooldown(() => this.shouldSpeedBoost = true);
+        }
         public void RecargarFuel(float cantUsada)
         {
-            this.afterBurnFuel = Math.Min(this.afterBurnFuel + cantUsada, 100);
+            this.AfterBurnFuel = Math.Min(this.AfterBurnFuel + cantUsada, 100);
         }
 
         public void Disparar()
@@ -318,6 +330,7 @@ namespace TGC.Group
         public void Revivir()
         {
             Vida = 100;
+            AfterBurnFuel = 100;
         }
     }
 }
