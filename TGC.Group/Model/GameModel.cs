@@ -93,17 +93,27 @@ namespace TGC.Group.Model
 
         private List<TGCBox> estrellasS = new List<TGCBox>
         {
-            TGCBox.fromSize(new TGCVector3(-5000, 1000, -13000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(500, 2000, -13000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(5000, 2500, -10000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(3000, 1000, -13000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(-3000, 2000, -11000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(-8000, 1500, -13000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(-4500, 800, -9000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(-9000, 300, -13000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(8000, 1500, -13000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(4500, 800, -9000), new TGCVector3(10,10,10), Color.White),
-            TGCBox.fromSize(new TGCVector3(9000, 300, -13000), new TGCVector3(10,10,10), Color.White),
+            TGCBox.fromSize(new TGCVector3(-5000, 1000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(500, 2000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(5000, 2500, -10000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(3000, 1000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-3000, 2000, -11000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-8000, 1500, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-4500, 800, -9000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-9000, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(8000, 1500, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(4500, 800, -9000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(9000, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(11500, 1500, -14000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(10000, 100, -10000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(9000, 100, -11100), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(8500, 2000, -9000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-9000, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-9000, 900, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(0, 300, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-1000, 2100, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(1000, 3000, -13000), new TGCVector3(15,15,15), Color.White),
+            TGCBox.fromSize(new TGCVector3(-2000, 300, -13000), new TGCVector3(15,15,15), Color.White)
         };
 
         //private TgcMp3Player sonidoLaser;
@@ -478,10 +488,11 @@ namespace TGC.Group.Model
 
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
             this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
+            estrellasS.ForEach(e => {
+                e.Position += new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000;
+            });
 
             (this.Camara as CamaraStarWars).Target = this.navePrincipal.GetPosition();
-
-
 
             PostUpdate();
         }
