@@ -565,7 +565,7 @@ namespace TGC.Group.Model
             var superficieEscena = this.escena.GetSurfaceLevel(0);
 
             depthStencilOld = d3dDevice.DepthStencilSurface;
-            //d3dDevice.DepthStencilSurface = depthStencil;
+            d3dDevice.DepthStencilSurface = depthStencil;
 
             d3dDevice.SetRenderTarget(0, superficieEscena);
             // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
