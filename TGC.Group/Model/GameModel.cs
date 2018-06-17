@@ -575,7 +575,7 @@ namespace TGC.Group.Model
             }
 
 
-            var superficieGlow = this.propulsoresBlurAux.GetSurfaceLevel(0);
+            var superficieGlow = this.propulsores.GetSurfaceLevel(0);
             d3dDevice.SetRenderTarget(0, superficieGlow);
 
             d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
@@ -585,7 +585,7 @@ namespace TGC.Group.Model
             navePrincipal.ActionOnNave(nave => nave.Technique = "CortePropulsores");
 
             navePrincipal.Render(TGCVector3.Empty, TGCVector3.Empty);
-            estrellasS.ForEach(e => e.Render());
+
             d3dDevice.EndScene();
 
             superficieGlow.Dispose();
@@ -604,27 +604,27 @@ namespace TGC.Group.Model
                   la textura de corte se grabe en propulsores en vez de propulsoresbluraux.
                   */
 
-                //superficieGlow = propulsores4.GetSurfaceLevel(0);
-                //d3dDevice.SetRenderTarget(0, superficieGlow);
+                superficieGlow = propulsoresBlurAux.GetSurfaceLevel(0);
+                d3dDevice.SetRenderTarget(0, superficieGlow);
 
-                //d3dDevice.BeginScene();
-                //blurEffect.Technique = "DownFilter4";
-                //d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
-                //d3dDevice.SetStreamSource(0, screenQuadVB, 0);
-                //blurEffect.SetValue("g_RenderTarget", propulsores);
-                
-                //d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
-                //blurEffect.Begin(FX.None);
-                //blurEffect.BeginPass(0);
-                //d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
-                //blurEffect.EndPass();
-                //blurEffect.End();
-                //superficieGlow.Dispose();
-                //if (save)
-                //{
-                //    TextureLoader.Save(this.MediaDir + "downfilter.bmp", ImageFileFormat.Bmp, propulsores4);
-                //}
-                //d3dDevice.EndScene();
+                d3dDevice.BeginScene();
+                blurEffect.Technique = "DownFilter4";
+                d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
+                d3dDevice.SetStreamSource(0, screenQuadVB, 0);
+                blurEffect.SetValue("g_RenderTarget", propulsores);
+
+                d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+                blurEffect.Begin(FX.None);
+                blurEffect.BeginPass(0);
+                d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                blurEffect.EndPass();
+                blurEffect.End();
+                superficieGlow.Dispose();
+                if (save)
+                {
+                    TextureLoader.Save(this.MediaDir + "downfilter.bmp", ImageFileFormat.Bmp, propulsoresBlurAux);
+                }
+                d3dDevice.EndScene();
 
                 d3dDevice.DepthStencilSurface = depthStencilOld;
 

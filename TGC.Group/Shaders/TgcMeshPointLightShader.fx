@@ -324,9 +324,12 @@ float4 ps_corte(VS_OUTPUT input) : COLOR0
 	// diffuseMap es el sampler, Texcoord son las coordenadas interpoladas
     float4 fvBaseColor = tex2D(diffuseMap, input.Texcoord);
 
+    //Agarramos la parte de atras de la nave y de esa parte unicamente aquellos fragmentos que tengan un aspecto bastante rojo.
     if (input.RealPos.x > -33.0 || fvBaseColor.x < 0.9)
         discard;
-    return fvBaseColor;
+
+    //Como el mesh aca se analiza sin haber pasado por los shaders de luz tiene un color muy fuerte en comparacion al de la escena, por eso rebajamos el color de la textura.
+    return fvBaseColor * 0.8;
 
 }
 

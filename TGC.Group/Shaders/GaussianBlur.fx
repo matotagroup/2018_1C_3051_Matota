@@ -81,6 +81,11 @@ technique GaussianBlurSeparable
 
 float4 PSDownFilter4(in float2 Tex : TEXCOORD0) : COLOR0
 {
+    float4 colorbase = tex2D(RenderTarget, Tex);
+
+    if (colorbase.x == 0 && colorbase.y == 0 && colorbase.z == 0)
+        discard;
+
     float4 Color = 0;
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
