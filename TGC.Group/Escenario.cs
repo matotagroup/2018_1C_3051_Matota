@@ -38,7 +38,7 @@ namespace TGC.Group
              new TGCVector4(2500,-999, -300, FastMath.PI),
              new TGCVector4(-1351,-1100,2112, 0),
              new TGCVector4(590f, -1000f, -450f, 0),
-             new TGCVector4(1700,-999, 1000, FastMath.PI),
+             new TGCVector4(1800,-999, 1000, FastMath.PI),
              new TGCVector4(300f, -1000f, -1300f, 0),
              new TGCVector4(350f, -1000f, -3000f, 0),
              new TGCVector4(-100f, -1000f, -4000f, 0),

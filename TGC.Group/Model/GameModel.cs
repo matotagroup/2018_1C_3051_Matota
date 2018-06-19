@@ -93,8 +93,9 @@ namespace TGC.Group.Model
         private Escenario currentScene;
 
         //Sounds
-        private TgcMp3Player sonidoAmbiente;
-        private TgcMp3Player sonidoMenu;
+        private TgcMp3Player sonidoAmbiente = new TgcMp3Player();
+        private TgcMp3Player sonidoMenu = new TgcMp3Player();
+        private TgcMp3Player sonidoDisparo = new TgcMp3Player();
 
         private int enemigosAlMismoTiempo = 3;
         private int dañoEnemigos = 5;
@@ -254,29 +255,15 @@ namespace TGC.Group.Model
 
             Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
 
-            //Cargar el MP3 sonido abiente
-            sonidoAmbiente = new TgcMp3Player
-            {
-                FileName = MediaDir + "Music\\StarWarsMusic.mp3"
-            };
-            sonidoMenu = new TgcMp3Player
-            {
-                FileName = MediaDir + "Sound\\musica_menu.mp3"
-            };
+            //Cargo sonidos
+            sonidoMenu.FileName = MediaDir + "\\Sound\\musica_menu.mp3";
+            sonidoAmbiente.FileName = MediaDir + "\\Music\\StarWarsMusic.mp3";
+            sonidoDisparo.FileName = MediaDir + "\\Music\\laserSound.mp3";
 
             sol = TGCBox.fromSize(new TGCVector3(0, 5000, 4000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
-            if (menu.playSonidoAmbiente)
-            {
 
-                //sonidoAmbiente.play(true);
-            }
-
-            //if (menu.playSonidoMenu)
-            //{
-            //    sonidoMenu.play(true);
-            //}
 
             //Sonido laser
             //sonidoLaser = new TgcMp3Player();
@@ -302,6 +289,16 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }*/
+            if (sonidoMenu.getStatus() != TgcMp3Player.States.Playing && menu.estaEnMenu)
+            {
+                sonidoMenu.play(true);
+                
+            }
+            if (sonidoAmbiente.getStatus() != TgcMp3Player.States.Playing)
+            {
+                sonidoAmbiente.play(true);
+
+            }
 
             if (menu.estaEnMenu)
             {
@@ -317,7 +314,10 @@ namespace TGC.Group.Model
             var movimientoNave = TGCVector3.Empty;
 
             if (!menu.estaEnMenu)
-            {
+            {       sonidoMenu.stop();
+                    sonidoMenu.closeFile();
+                              
+
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
                     movimientoNave.X = 1;
@@ -403,21 +403,21 @@ namespace TGC.Group.Model
                     this.navePrincipal.DoRight90Spin();
 
                 //Disparar
-                //var estadoActual = sonidoLaser.getStatus();
+                var estadoActual = sonidoDisparo.getStatus();
                 var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
                 if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
                 {
                     /*
                      if(estadoActual == TgcMp3Player.States.Open)
                      {
-                         sonidoLaser.play(false);  
+                        sonidoDisparo.play(false);  
                      }
                      if(estadoActual == TgcMp3Player.States.Stopped)
                      {
-                         sonidoLaser.closeFile(); 
-                         sonidoLaser.play(false);
-                     }
-                     */
+                        sonidoDisparo.closeFile(); 
+                         sonidoDisparo.play(false);
+                     }*/
+                     
                     this.navePrincipal.Disparar(new TGCVector3((((D3DDevice.Instance.Width / 2) - Input.Xpos) * 10) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000));
                 }
                 if (Input.keyDown(Key.F))
@@ -500,6 +500,9 @@ namespace TGC.Group.Model
 
             if (!navePrincipal.EstaViva())
             {
+                sonidoAmbiente.stop();
+                sonidoAmbiente.closeFile();
+
                 movimientoNave = TGCVector3.Empty;
                 this.navePrincipal.MoveTo(new TGCVector3(1200f, -1100f, 4000f) + currentScene.GetOffsetVectorMoved());
                 this.skyBox.Center = new TGCVector3(0, 0, -2300f) + currentScene.GetOffsetVectorMoved();
