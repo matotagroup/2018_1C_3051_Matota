@@ -52,6 +52,11 @@ namespace TGC.Group
 
         }
 
+        public MenuPrincipal GetMenuPrincipal()
+        {
+            return this.MenuPrincipal;
+        }
+
         public void Render(float elapsedTime, Drawer2D drawer)
         {
             menuActual.Render(elapsedTime, drawer);

@@ -90,7 +90,6 @@ namespace TGC.Group.Model
         private int enemigosAlMismoTiempo = 3;
         private int dañoEnemigos = 5;
 
-
         private List<TGCBox> estrellasS = new List<TGCBox>
         {
             TGCBox.fromSize(new TGCVector3(-5000, 1000, -13000), new TGCVector3(15,15,15), Color.White),
@@ -225,6 +224,7 @@ namespace TGC.Group.Model
             //escenarios.ForEach(es => es.generarTorre(MediaDir));
             currentScene = escenarios[0];
 
+            //this.navePrincipal.setEffect(this.ShadersDir);
             this.navePrincipal.CreateOOB();
             //this.nave1.CreateOOB();
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
@@ -594,6 +594,7 @@ namespace TGC.Group.Model
 
             navePrincipal.Render(TGCVector3.Empty, TGCVector3.Empty);
 
+
             d3dDevice.EndScene();
 
             superficieGlow.Dispose();
@@ -761,8 +762,10 @@ namespace TGC.Group.Model
             DrawText.drawText("Vida del enemigo 2: " + enemigos[1].Vida, 0, 230, Color.White);
             DrawText.drawText("Vida del enemigo 3: " + enemigos[2].Vida, 0, 270, Color.White);
             DrawText.drawText("Menu: " + menu.estaEnMenu, 0, 370, Color.White);
-
-
+            DrawText.drawText("Menu: ancho " + GameForm.MousePosition, 0, 385, Color.White);
+            DrawText.drawText("Menu: alto" + TGCVector2.PrintVector2(menu.GetMenuPrincipal().tamanio()), 0, 400, Color.White);
+            DrawText.drawText("Menu: posicion mouse" + TGCVector2.PrintVector2(new TGCVector2(Input.Xpos, Input.Ypos)), 0, 415, Color.White);
+            DrawText.drawText("Menu: hitbox" + TGCVector2.PrintVector2(menu.GetMenuPrincipal().tamanio()+menu.GetMenuPrincipal().posicion()), 0, 430, Color.White);
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
         }
 

@@ -18,9 +18,6 @@ namespace TGC.Group.Model.MenuesImplementados
         private Boton salir;
 
         private TGCVector2 posicionTitulo = new TGCVector2(750, 50);
-        //private TGCVector2 posicionEmpezar = new TGCVector2(100, 400);
-        private TGCVector2 posicionOpciones = new TGCVector2(100, 600);
-        private TGCVector2 posicionSalir = new TGCVector2(100, 800);
 
         private List<Simbolo> simbolos;
         private List<Boton> botonesMenuPrincipal;
@@ -61,6 +58,18 @@ namespace TGC.Group.Model.MenuesImplementados
         public void Update(float elapsedTime, Menu menu)
         {
             botonesMenuPrincipal.ForEach(boton => boton.Update(elapsedTime, menu));
+        }
+        public TGCVector2 posicion()
+        {
+            return empezar.Position;
+        }
+        public TGCVector2 tamanio()
+        {
+            return empezar.tamanio();
+        }
+        public TGCVector2 scale()
+        {
+            return empezar.Scaling;
         }
     }
 }

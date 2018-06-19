@@ -54,21 +54,13 @@ namespace TGC.Group
             vec.Y *= spriteActual.Scaling.Y;
             return vec;
         }
-        public TGCVector2 posicion()
-        {
-            return new TGCVector2(input.Xpos, input.Ypos);
-        }
-        public TGCVector2 maxVec()
-        {
-            return this.Position + this.tamanio();
-        }
         public void Update(float elapsedTime, Menu menu)
         {
             var mousePos = new TGCVector2(input.Xpos, input.Ypos);
             var minVec = this.Position;
             var maxVec = this.Position + this.tamanio();
 
-            if (minVec.X < mousePos.X && minVec.Y < mousePos.Y && mousePos.Y < maxVec.Y && mousePos.Y < maxVec.Y)
+            if (minVec.X < mousePos.X && minVec.Y < mousePos.Y && mousePos.X < maxVec.X && mousePos.Y < maxVec.Y)
             {
                 spriteActual.Bitmap = spriteSeleccionado;
                 if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))

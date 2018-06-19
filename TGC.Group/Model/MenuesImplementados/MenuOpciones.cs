@@ -17,11 +17,6 @@ namespace TGC.Group.Model.MenuesImplementados
         private Boton controles;
         private Boton volver;
 
-        private TGCVector2 posicionVolver = new TGCVector2(100, 800);
-        private TGCVector2 posicionAudio = new TGCVector2(100, 600);
-        private TGCVector2 posicionInstrucciones = new TGCVector2(100, 200);
-        private TGCVector2 posicionControles = new TGCVector2(100, 400);
-
         public int W = D3DDevice.Instance.Width;
         public int H = D3DDevice.Instance.Height;
         private List<Boton> botonesOpciones;
