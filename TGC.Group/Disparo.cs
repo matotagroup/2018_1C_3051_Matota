@@ -22,7 +22,7 @@ namespace TGC.Group
         private TGCVector3 MovementDirection;
 
 
-        private const float velocidadDisparo = 1500f;
+        private const float velocidadDisparo = 8000f;
 
         public TgcBoundingOrientedBox OOB
         {

@@ -102,14 +102,14 @@ namespace TGC.Group
             this.AfterBurnFuel = Math.Min(this.AfterBurnFuel + cantUsada, 100);
         }
 
-        public void Disparar()
+        public bool Disparar()
         {
-            this.ArmaPrincipal.Disparar(this.MovementVector-new TGCVector3(0f,0f,1f));
+           return ArmaPrincipal.Disparar(this.MovementVector-new TGCVector3(0f,0f,1f));
         }
 
-        public void Disparar(TGCVector3 target)
+        public bool Disparar(TGCVector3 target)
         {
-            this.ArmaPrincipal.Disparar(target);
+            return ArmaPrincipal.Disparar(target);
         }
 
         public void CreateOOB()

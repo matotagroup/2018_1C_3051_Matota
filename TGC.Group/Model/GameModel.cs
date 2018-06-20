@@ -93,9 +93,10 @@ namespace TGC.Group.Model
         private Escenario currentScene;
 
         //Sounds
-        private TgcMp3Player sonidoAmbiente = new TgcMp3Player();
-        private TgcMp3Player sonidoMenu = new TgcMp3Player();
-        private TgcMp3Player sonidoDisparo = new TgcMp3Player();
+        private TgcMp3Player player = new TgcMp3Player();
+        private string sonidoAmbiente;
+        private string sonidoMenu;
+        private string sonidoDisparo;
 
         private int enemigosAlMismoTiempo = 3;
         private int dañoEnemigos = 5;
@@ -256,13 +257,20 @@ namespace TGC.Group.Model
             Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
 
             //Cargo sonidos
-            sonidoMenu.FileName = MediaDir + "\\Sound\\musica_menu.mp3";
-            sonidoAmbiente.FileName = MediaDir + "\\Music\\StarWarsMusic.mp3";
-            sonidoDisparo.FileName = MediaDir + "\\Music\\laserSound.mp3";
+            sonidoMenu = MediaDir + "Sound\\musica_menu.mp3";
+            sonidoAmbiente= MediaDir + "Music\\StarWarsMusic.mp3";
+            sonidoDisparo = MediaDir + "Music\\laserSound.mp3";
 
             sol = TGCBox.fromSize(new TGCVector3(0, 5000, 4000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
+            if (menu.playSonidoMenu)
+            {
+                player.closeFile();
+                player.FileName = sonidoMenu;
+                player.play(true);
+            }
+
 
 
             //Sonido laser
@@ -289,20 +297,29 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }*/
-            if (sonidoMenu.getStatus() != TgcMp3Player.States.Playing && menu.estaEnMenu)
-            {
-                sonidoMenu.play(true);
-                
-            }
-            if (sonidoAmbiente.getStatus() != TgcMp3Player.States.Playing)
-            {
-                sonidoAmbiente.play(true);
+            //if (menu.playSonidoAmbiente)
+            //{
+            //    player.closeFile();
+            //    player.FileName = sonidoAmbiente;
+            //    player.play(true);
+            //}
 
-            }
+            //if (menu.playSonidoMenu)
+            //{
+            //    player.closeFile();
+            //    player.FileName = sonidoMenu;
+            //    player.play(true);
+            //}
 
             if (menu.estaEnMenu)
             {
                 menu.Update(ElapsedTime);
+                if (player.FileName != sonidoMenu)
+                {
+                    player.closeFile();
+                    player.FileName = sonidoMenu;
+                    player.play(true);
+                }
                 PostUpdate();
                 return;
             }
@@ -314,10 +331,13 @@ namespace TGC.Group.Model
             var movimientoNave = TGCVector3.Empty;
 
             if (!menu.estaEnMenu)
-            {       sonidoMenu.stop();
-                    sonidoMenu.closeFile();
-                              
-
+            {
+                if(player.FileName==sonidoMenu||(player.FileName!= sonidoAmbiente && player.getStatus() == TgcMp3Player.States.Stopped))
+                {
+                    player.closeFile();
+                    player.FileName = sonidoAmbiente;
+                    player.play(true);
+                }
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
                     movimientoNave.X = 1;
@@ -325,9 +345,9 @@ namespace TGC.Group.Model
                     movimientoNave.X = -1;
 
                 //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
-                if (Input.keyDown(Key.E))
+                if (Input.keyDown(Key.W)||Input.keyDown(Key.UpArrow))
                     movimientoNave.Y = 1;
-                else if (Input.keyDown(Key.LeftControl))
+                else if (Input.keyDown(Key.S)||Input.keyDown(Key.DownArrow))
                     movimientoNave.Y = -1;
 
                 //boost de velocidad con shift
@@ -350,11 +370,11 @@ namespace TGC.Group.Model
                 else
                     cant_pasadas = 2;
 
-                if ((Input.keyDown(Key.Up) || Input.keyDown(Key.S)) && !Input.keyDown(Key.LeftShift))
-                {
-                    cant_pasadas = 0;
+                //if ((Input.keyDown(Key.Up) || Input.keyDown(Key.S)) && !Input.keyDown(Key.LeftShift))
+                //{
+                //    cant_pasadas = 0;
 
-                }
+                //}
                 /*if (movimientoZ < movimientoBaseZ)
                 {
                     movimientoZ += factorMovimientoZ;
@@ -364,21 +384,21 @@ namespace TGC.Group.Model
                 */
 
 
-                if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
-                {
-                    if (movimientoZ < movimientoBaseZ)
-                        movimientoZ += factorMovimientoZ;
+                //if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
+                //{
+                //    if (movimientoZ < movimientoBaseZ)
+                //        movimientoZ += factorMovimientoZ;
 
-                    movimientoNave.Z = movimientoZ;
-                }
+                //    movimientoNave.Z = movimientoZ;
+                //}
                 //Movernos adelante y atras, sobre el eje Z.
                 //movimientoNave.Y = Input.keyDown(Key.UpArrow) ? 1 : Input.keyDown(Key.DownArrow) ? -1 : 0;
 
-                //if (movimientoZ < movimientoBaseZ)
-                //{
-                //    movimientoZ += factorMovimientoZ;
-                //}
-                //movimientoNave.Z = movimientoZ;
+                if (movimientoZ < movimientoBaseZ)
+                {
+                    movimientoZ += factorMovimientoZ;
+                }
+                movimientoNave.Z = movimientoZ;
 
                 //else if (Input.keyDown(Key.Up) || Input.keyDown(Key.W))
                 //{
@@ -403,8 +423,6 @@ namespace TGC.Group.Model
                     this.navePrincipal.DoRight90Spin();
 
                 //Disparar
-                var estadoActual = sonidoDisparo.getStatus();
-                var estadoSonidoAmbiente = sonidoAmbiente.getStatus();
                 if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
                 {
                     /*
@@ -417,12 +435,22 @@ namespace TGC.Group.Model
                         sonidoDisparo.closeFile(); 
                          sonidoDisparo.play(false);
                      }*/
-                     
-                    this.navePrincipal.Disparar(new TGCVector3((((D3DDevice.Instance.Width / 2) - Input.Xpos) * 10) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000));
+
+                    if (navePrincipal.Disparar(new TGCVector3((((D3DDevice.Instance.Width / 2) - Input.Xpos) * 10) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000)))
+                    {
+                        player.closeFile();
+                        player.FileName = sonidoDisparo;
+                        player.play(false);
+                    }
                 }
                 if (Input.keyDown(Key.F))
                 {
-                    this.navePrincipal.Disparar();
+                    if (navePrincipal.Disparar())
+                    {
+                        player.closeFile();
+                        player.FileName = sonidoDisparo;
+                        player.play(false);
+                    }
                 }
                 var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
                 torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(ElapsedTime); });
@@ -500,10 +528,6 @@ namespace TGC.Group.Model
 
             if (!navePrincipal.EstaViva())
             {
-                sonidoAmbiente.stop();
-                sonidoAmbiente.closeFile();
-
-                movimientoNave = TGCVector3.Empty;
                 this.navePrincipal.MoveTo(new TGCVector3(1200f, -1100f, 4000f) + currentScene.GetOffsetVectorMoved());
                 this.skyBox.Center = new TGCVector3(0, 0, -2300f) + currentScene.GetOffsetVectorMoved();
                 this.navePrincipal.Revivir();
@@ -587,11 +611,11 @@ namespace TGC.Group.Model
             d3dDevice.SetRenderTarget(0, superficieEscena);
             // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
             // por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video)
-            d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            //d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
 
-            this.RenderShadowMap(sol.Position, navePrincipal.GetPosition());
-            d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
-            RenderShadowScene();
+            //this.RenderShadowMap(sol.Position, navePrincipal.GetPosition());
+            //d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            //RenderShadowScene();
             d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
 
             RendeScene(d3dDevice);
@@ -802,8 +826,7 @@ namespace TGC.Group.Model
             this.enemigos.ForEach(enemigo => enemigo.Scene.DisposeAll());
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
-            sonidoAmbiente.closeFile();
-            //sonidoLaser.closeFile();
+            player.closeFile();
         }
         private void RenderShadowMap(TGCVector3 lightPosition, TGCVector3 lookAt)
         {

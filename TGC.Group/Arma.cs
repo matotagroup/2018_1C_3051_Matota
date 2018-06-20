@@ -41,13 +41,15 @@ namespace TGC.Group
         
 
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
-        public void Disparar(TGCVector3 targetPosition)
+        public bool Disparar(TGCVector3 targetPosition)
         {
             if(shotLimiter.ElapsedMilliseconds > cooldownDisparo)
             {
                 this.disparos.Add(new Disparo(position,targetPosition,shotSize,shotColor));
                 shotLimiter.Restart();
+                return true;
             }
+            return false;
         }
 
         public bool CheckShots(NaveEspacial nave)
