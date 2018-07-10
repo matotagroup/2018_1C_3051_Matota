@@ -30,11 +30,18 @@ void VSCopy(float4 vPos : POSITION, float2 vTex : TEXCOORD0, out float4 oPos : P
 
 // Gaussian Blur
 
-static const int kernel_r = 6;
+/*static const int kernel_r = 6;
 static const int kernel_size = 13;
 static const float Kernel[kernel_size] =
 {
     0.002216, 0.008764, 0.026995, 0.064759, 0.120985, 0.176033, 0.199471, 0.176033, 0.120985, 0.064759, 0.026995, 0.008764, 0.002216,
+};*/
+
+static const int kernel_r = 10;
+static const int kernel_size = 20;
+static const float Kernel[kernel_size] =
+{
+    0.002216, 0.008764,0.010646,0.012356941, 0.018526189,0.0235619, 0.026995, 0.064759, 0.120985, 0.176033, 0.199471, 0.176033, 0.120985, 0.064759, 0.026995, 0.0201591,0.01598516,0.01151984, 0.008764, 0.002216,
 };
 
 void BlurH(float2 screen_pos : TEXCOORD0, out float4 Color : COLOR)

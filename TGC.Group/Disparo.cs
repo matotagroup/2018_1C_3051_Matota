@@ -9,7 +9,9 @@ using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
 using TGC.Core.BoundingVolumes;
-using TGC.Core.Textures;
+using TGC.Core.Sound;
+
+
 
 namespace TGC.Group
 {
@@ -20,6 +22,7 @@ namespace TGC.Group
         private Stopwatch vida = null;
         public bool ShouldDie { get; private set; }
         private TGCVector3 MovementDirection;
+        private Tgc3dSound sonido;
 
 
         private const float velocidadDisparo = 8000f;
@@ -52,7 +55,7 @@ namespace TGC.Group
             return FastMath.Acos(TGCVector3.Dot(a, b) / (a.Length() * b.Length()));
         }
 
-        public Disparo(TGCVector3 startPosition,TGCVector3 targetPosition,TGCVector3 size, Color color)
+        public Disparo(TGCVector3 startPosition, TGCVector3 targetPosition,TGCVector3 size, Color color, string soundPath, Microsoft.DirectX.DirectSound.Device device)
         {
             vida = Stopwatch.StartNew();
             ShouldDie = false;
@@ -64,7 +67,16 @@ namespace TGC.Group
             this.OOB = TgcBoundingOrientedBox.computeFromAABB(modelo.BoundingBox);
             //this.OOB.move(this.MovementDirection);
             this.OOB.rotate(modelo.Rotation);
+            this.sonido = new Tgc3dSound(soundPath, modelo.Position, device);
+            sonido.Position = modelo.Position;
+            sonido.MinDistance = 50f;
+            sonido.play();
             //modelo.BoundingBox.transform(TGCMatrix.RotationYawPitchRoll(modelo.Rotation.Y,modelo.Rotation.X,0));
+        }
+        public Disparo(TGCVector3 startPosition, TGCVector3 targetPosition, TGCVector3 size, Color color, string soundPath, Microsoft.DirectX.DirectSound.Device device, float minDistance): this(startPosition, targetPosition, size, color, soundPath, device)
+        {
+            sonido.MinDistance = minDistance;
+
         }
 
         public void Live(List<Disparo> disparos, float elapsedTime)
@@ -74,12 +86,16 @@ namespace TGC.Group
                 ShouldDie = true;
                 this.modelo.Dispose();
                 this.OOB.Dispose();
+                sonido.dispose();
                 this.Dispose();
                 disparos.Remove(this);
             }
-
-            OOB.move(MovementDirection * velocidadDisparo*elapsedTime);
-            modelo.Move(MovementDirection * velocidadDisparo*elapsedTime);
+            else
+            {
+                OOB.move(MovementDirection * velocidadDisparo * elapsedTime);
+                modelo.Move(MovementDirection * velocidadDisparo * elapsedTime);
+                sonido.Position = modelo.Position;
+            }
         }
 
         public bool HayColision(NaveEspacial nave)
@@ -89,7 +105,7 @@ namespace TGC.Group
 
         public void Render()
         {
-            this.OOB.Render();
+            //this.OOB.Render();
             if(!ShouldDie)
                 this.modelo.Render();
         }
@@ -97,6 +113,7 @@ namespace TGC.Group
         public void Dispose()
         {
             this.modelo.Dispose();
+            sonido.dispose();
         }
     }
 }

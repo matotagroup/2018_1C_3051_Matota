@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using TGC.Core.Collision;
 using TGC.Core.Geometry;
 using TGC.Core.Mathematica;
+using TGC.Core.Sound;
 using TGC.Core.Textures;
 using TGC.Group.Form;
 
@@ -25,9 +26,9 @@ namespace TGC.Group
         public int Danio { set; get; }
 
         private int cooldownDisparo;
+        private float minDistance;
 
-
-        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo, int danio, int cdDisparo, TGCVector3 startPosition)
+        public Arma(TGCVector3 tamanioDisparo, Color colorDisparo, int danio, int cdDisparo, TGCVector3 startPosition, float minDistance = -1f)
         {
             this.Danio = danio;
             this.shotSize = tamanioDisparo;
@@ -36,16 +37,20 @@ namespace TGC.Group
             shotLimiter = Stopwatch.StartNew();
             position = startPosition;
             cooldownDisparo = cdDisparo;
+            this.minDistance = minDistance;
 
         }
-        
+
 
         // TODO: Agregar un target con el mouse o algo para que dispare a cierta direccion no solo para adelante.
-        public bool Disparar(TGCVector3 targetPosition)
+        public bool Disparar(TGCVector3 targetPosition, string soundPath, Microsoft.DirectX.DirectSound.Device device)
         {
-            if(shotLimiter.ElapsedMilliseconds > cooldownDisparo)
+            if (shotLimiter.ElapsedMilliseconds > cooldownDisparo)
             {
-                this.disparos.Add(new Disparo(position,targetPosition,shotSize,shotColor));
+                if (minDistance != -1)
+                    disparos.Add(new Disparo(position, targetPosition, shotSize, shotColor, soundPath, device, minDistance));
+                else
+                    this.disparos.Add(new Disparo(position, targetPosition, shotSize, shotColor, soundPath, device));
                 shotLimiter.Restart();
                 return true;
             }
@@ -54,17 +59,19 @@ namespace TGC.Group
 
         public bool CheckShots(NaveEspacial nave)
         {
-            var cols = disparos.FindAll(t => t.HayColision(nave)).Select( t => disparos.IndexOf(t)).ToList();
-            cols.ForEach(e => {
+            var cols = disparos.FindAll(t => t.HayColision(nave)).Select(t => disparos.IndexOf(t)).ToList();
+            cols.ForEach(e =>
+            {
                 try
                 {
                     disparos.RemoveAt(e);
-                } catch (IndexOutOfRangeException)
+                }
+                catch (IndexOutOfRangeException)
                 {
                     //El disparo ya habia sido removido
                 }
             });
-           
+
             return cols.Count() > 0;
         }
 

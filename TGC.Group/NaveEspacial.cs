@@ -11,6 +11,7 @@ using TGC.Core.Direct3D;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
 using TGC.Core.Shaders;
+using TGC.Core.Sound;
 using TGC.Core.Textures;
 
 namespace TGC.Group
@@ -48,7 +49,7 @@ namespace TGC.Group
             private set; get;
         }
 
-        public NaveEspacial(string MediaDir, string modelToUse, int danio, int cdDisparo, string defaultTechnique = null)
+        public NaveEspacial(string MediaDir, string modelToUse, int danio, int cdDisparo, string defaultTechnique = null, float minDistanceSound = -1f)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
             this.TransformMatix = TGCMatrix.Identity;
@@ -56,7 +57,7 @@ namespace TGC.Group
             this.RotationVector = TGCVector3.Empty;
             this.MovementVector = TGCVector3.Empty;
 
-            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, danio, cdDisparo, this.GetPosition());
+            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, danio, cdDisparo, this.GetPosition(), minDistanceSound);
             this.coolDownMovimientos = Stopwatch.StartNew();
 
 
@@ -102,14 +103,14 @@ namespace TGC.Group
             this.AfterBurnFuel = Math.Min(this.AfterBurnFuel + cantUsada, 100);
         }
 
-        public bool Disparar()
+        public bool Disparar(string soundPath, Microsoft.DirectX.DirectSound.Device device)
         {
-           return ArmaPrincipal.Disparar(this.MovementVector-new TGCVector3(0f,0f,1f));
+           return ArmaPrincipal.Disparar(this.MovementVector-new TGCVector3(0f,0f,1f),soundPath, device);
         }
 
-        public bool Disparar(TGCVector3 target)
+        public bool Disparar(TGCVector3 target, string soundPath, Microsoft.DirectX.DirectSound.Device device)
         {
-            return ArmaPrincipal.Disparar(target);
+            return ArmaPrincipal.Disparar(target, soundPath, device);
         }
 
         public void CreateOOB()
@@ -323,7 +324,12 @@ namespace TGC.Group
                 //if (renderBoundingBox)
                 //    mesh.BoundingBox.Render();
             });
+        }
+
+        public void RenderDisparos()
+        {
             this.ArmaPrincipal.Render();
+
         }
 
         public void ActionOnNave(System.Action<TgcMesh> action)

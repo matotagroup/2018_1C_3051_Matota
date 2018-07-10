@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Sound;
 using TGC.Group;
 
 public class Torre
@@ -60,9 +61,9 @@ public class Torre
         return (this.posicion - posicionObjetivo).Length();
     }
 
-    public void Disparar(TGCVector3 targetPosition)
+    public void Disparar(TGCVector3 targetPosition, string soundPath, Microsoft.DirectX.DirectSound.Device device)
     {
-        this.arma.Disparar(targetPosition+new TGCVector3(0,0,-500f));
+        this.arma.Disparar(targetPosition+new TGCVector3(0,0,-500f), soundPath, device);
     }
 
     public bool EnRango(TGCVector3 targetPosition)
@@ -88,8 +89,14 @@ public class Torre
 
         if(renderBoundingBox)
             this.Scene.BoundingBox.Render();
+        
+    }
+
+    public void RenderDisparos()
+    {
         this.arma.Render();
     }
+
     public bool CheckIfMyShotsCollided(NaveEspacial otraNave)
     {
         return arma.CheckShots(otraNave);

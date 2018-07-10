@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TGC.Core.BoundingVolumes;
 using TGC.Core.Mathematica;
 using TGC.Core.SceneLoader;
+using TGC.Core.Sound;
 using TGC.Core.Textures;
 
 namespace TGC.Group
@@ -77,11 +78,11 @@ namespace TGC.Group
             return movimiento;
         }
 
-        public void Perseguir(float elapsedTime)
+        public void Perseguir(float elapsedTime, string soundPath, Microsoft.DirectX.DirectSound.Device device)
         {
             Move(ObtenerMovimiento() * elapsedTime);
             if (PuedeDisparar())
-                Disparar(naveAPerseguir.GetPosition());
+                Disparar(naveAPerseguir.GetPosition(), soundPath, device);
         }
 
         public void Relocate()

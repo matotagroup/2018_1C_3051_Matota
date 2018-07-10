@@ -93,10 +93,10 @@ namespace TGC.Group.Model
         private Escenario currentScene;
 
         //Sounds
-        private TgcMp3Player player = new TgcMp3Player();
-        private string sonidoAmbiente;
-        private string sonidoMenu;
-        private string sonidoDisparo;
+        private TgcMp3Player playerAmbiente = new TgcMp3Player();
+        private string pathSonidoAmbiente;
+        private string pathSonidoMenu;
+        private string pathSonidoDisparo;
 
         private int enemigosAlMismoTiempo = 3;
         private int dañoEnemigos = 5;
@@ -126,7 +126,6 @@ namespace TGC.Group.Model
             TGCBox.fromSize(new TGCVector3(-2000, 300, -13000), new TGCVector3(15,15,15), Color.White)
         };
 
-        //private TgcMp3Player sonidoLaser;
 
         //Codigo De caja previo
         /*//Caja que se muestra en el ejemplo.
@@ -214,13 +213,11 @@ namespace TGC.Group.Model
 
             skyBox.Init();
 
-            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml", 10, 250);
+            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml", 10, 250,null,250f);
             this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
 
-            //this.nave1 = new NaveEnemiga(MediaDir, "X-Wing-TgcScene.xml", new TGCVector3(0,0,-200f),navePrincipal,250f);
-            //nave1.ArmaPrincipal.Danio = 1;
 
             for (int i = 0; i < 5; i++)
                 escenarios.Add(Escenario.GenerarEscenarioDefault(MediaDir, i));
@@ -256,26 +253,22 @@ namespace TGC.Group.Model
 
             Camara = new CamaraStarWars(this.navePrincipal.GetPosition(), 20, 100);
 
-            //Cargo sonidos
-            sonidoMenu = MediaDir + "Sound\\musica_menu.mp3";
-            sonidoAmbiente= MediaDir + "Music\\StarWarsMusic.mp3";
-            sonidoDisparo = MediaDir + "Music\\laserSound.mp3";
-
             sol = TGCBox.fromSize(new TGCVector3(0, 5000, 4000), new TGCVector3(50, 50, 50), Color.Yellow);
             sol.AutoTransform = true;
             menu = new Menu(MediaDir, Input);
+
+            //Cargo sonidos
+            pathSonidoMenu = MediaDir + "Sound\\musica_menu.mp3";
+            pathSonidoAmbiente= MediaDir + "Music\\StarWarsMusic.mp3";
+            pathSonidoDisparo = MediaDir + "Music\\laserSound.wav";
+
             if (menu.playSonidoMenu)
             {
-                player.closeFile();
-                player.FileName = sonidoMenu;
-                player.play(true);
+                playerAmbiente.closeFile();
+                playerAmbiente.FileName = pathSonidoMenu;
+                playerAmbiente.play(true);
             }
 
-
-
-            //Sonido laser
-            //sonidoLaser = new TgcMp3Player();
-            //sonidoLaser.FileName = MediaDir + "Music\\laserSound.mp3";
 
             drawer = new Drawer2D();
             hud = new Hud(MediaDir, Input);
@@ -297,28 +290,15 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }*/
-            //if (menu.playSonidoAmbiente)
-            //{
-            //    player.closeFile();
-            //    player.FileName = sonidoAmbiente;
-            //    player.play(true);
-            //}
-
-            //if (menu.playSonidoMenu)
-            //{
-            //    player.closeFile();
-            //    player.FileName = sonidoMenu;
-            //    player.play(true);
-            //}
 
             if (menu.estaEnMenu)
             {
                 menu.Update(ElapsedTime);
-                if (player.FileName != sonidoMenu)
+                if (playerAmbiente.FileName != pathSonidoMenu)
                 {
-                    player.closeFile();
-                    player.FileName = sonidoMenu;
-                    player.play(true);
+                    playerAmbiente.closeFile();
+                    playerAmbiente.FileName = pathSonidoMenu;
+                    playerAmbiente.play(true);
                 }
                 PostUpdate();
                 return;
@@ -332,11 +312,11 @@ namespace TGC.Group.Model
 
             if (!menu.estaEnMenu)
             {
-                if(player.FileName==sonidoMenu||(player.FileName!= sonidoAmbiente && player.getStatus() == TgcMp3Player.States.Stopped))
+                if (playerAmbiente.FileName != pathSonidoAmbiente)
                 {
-                    player.closeFile();
-                    player.FileName = sonidoAmbiente;
-                    player.play(true);
+                    playerAmbiente.closeFile();
+                    playerAmbiente.FileName = pathSonidoAmbiente;
+                    playerAmbiente.play(true);
                 }
                 //Movernos de izquierda a derecha, sobre el eje X.
                 if (Input.keyDown(Key.Left) || Input.keyDown(Key.A))
@@ -425,35 +405,20 @@ namespace TGC.Group.Model
                 //Disparar
                 if (Input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
                 {
-                    /*
-                     if(estadoActual == TgcMp3Player.States.Open)
-                     {
-                        sonidoDisparo.play(false);  
-                     }
-                     if(estadoActual == TgcMp3Player.States.Stopped)
-                     {
-                        sonidoDisparo.closeFile(); 
-                         sonidoDisparo.play(false);
-                     }*/
-
-                    if (navePrincipal.Disparar(new TGCVector3((((D3DDevice.Instance.Width / 2) - Input.Xpos) * 10) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000)))
+                    if (navePrincipal.Disparar(new TGCVector3((((D3DDevice.Instance.Width / 2) - Input.Xpos) * 10) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000), pathSonidoDisparo, DirectSound.DsDevice))
                     {
-                        player.closeFile();
-                        player.FileName = sonidoDisparo;
-                        player.play(false);
+                        //Aca va la posicion del disparo creo
+                       
                     }
                 }
                 if (Input.keyDown(Key.F))
                 {
-                    if (navePrincipal.Disparar())
+                    if (navePrincipal.Disparar(pathSonidoDisparo, DirectSound.DsDevice))
                     {
-                        player.closeFile();
-                        player.FileName = sonidoDisparo;
-                        player.play(false);
                     }
                 }
                 var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
-                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition()); torre.Update(ElapsedTime); });
+                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition(), pathSonidoDisparo, DirectSound.DsDevice); torre.Update(ElapsedTime); });
             }
             NaveEnemiga.resetearPosiciones();
 
@@ -489,7 +454,7 @@ namespace TGC.Group.Model
 
             enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
             {
-                enemigo.Perseguir(ElapsedTime);
+                enemigo.Perseguir(ElapsedTime, pathSonidoDisparo, DirectSound.DsDevice);
                 enemigo.Update(ElapsedTime);
             }
             );
@@ -558,6 +523,8 @@ namespace TGC.Group.Model
 
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
             navePrincipal.Render(sol.Position, Camara.Position);
+
+            DirectSound.Listener3d.Position = navePrincipal.GetPosition();
 
             this.escenarios.ForEach((es) => {
                 es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
@@ -639,6 +606,11 @@ namespace TGC.Group.Model
 
             navePrincipal.Render(TGCVector3.Empty, TGCVector3.Empty);
 
+            navePrincipal.RenderDisparos();
+
+            enemigos.ForEach(enemigo => enemigo.RenderDisparos());
+
+            escenarios.ForEach(escenario => escenario.torres.ForEach(torre => torre.RenderDisparos()));
 
             d3dDevice.EndScene();
 
@@ -826,7 +798,7 @@ namespace TGC.Group.Model
             this.enemigos.ForEach(enemigo => enemigo.Scene.DisposeAll());
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
-            player.closeFile();
+            playerAmbiente.closeFile();
         }
         private void RenderShadowMap(TGCVector3 lightPosition, TGCVector3 lookAt)
         {
