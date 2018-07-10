@@ -53,15 +53,6 @@ sampler Propulsores = sampler_state
     MagFilter = NONE;
 };
 
-texture shadowTexture; // textura para el shadow map
-sampler2D shadowScene =
-sampler_state
-{
-	Texture = <shadowTexture>;
-	MinFilter = NONE;
-	MagFilter = NONE;
-	MipFilter = NONE;
-};
 //Input del Pixel Shader
 struct PS_INPUT_DEFAULT
 {
@@ -71,7 +62,7 @@ struct PS_INPUT_DEFAULT
 //Pixel Shader
 float4 ps_merge(PS_INPUT_DEFAULT Input) : COLOR0
 {
-    return tex2D(Escena, Input.Texcoord) + tex2D(Propulsores, Input.Texcoord)+ tex2D(shadowScene,Input.Texcoord);
+    return tex2D(Escena, Input.Texcoord) + tex2D(Propulsores, Input.Texcoord);
 }
 
 technique TechniqueMerge

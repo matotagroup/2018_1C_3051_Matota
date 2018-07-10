@@ -1,24 +1,20 @@
+using Microsoft.DirectX;
+using Microsoft.DirectX.Direct3D;
 using Microsoft.DirectX.DirectInput;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using TGC.Core.Collision;
 using TGC.Core.Direct3D;
 using TGC.Core.Example;
 using TGC.Core.Geometry;
 using TGC.Core.Input;
 using TGC.Core.Mathematica;
-using TGC.Core.SceneLoader;
-using TGC.Core.Textures;
+using TGC.Core.Shaders;
 using TGC.Core.Sound;
 using TGC.Core.Terrain;
-using Microsoft.DirectX;
-using TGC.Core.Collision;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using TGC.Core.Shaders;
-using Microsoft.DirectX.Direct3D;
-using TGC.Group.Model.UtilsParaGUI;
 using TGC.Group.Form;
-using System.Linq;
+using TGC.Group.Model.UtilsParaGUI;
 
 namespace TGC.Group.Model
 {
@@ -42,9 +38,7 @@ namespace TGC.Group.Model
             Description = Game.Default.Description;
         }
 
-
         private Texture escena, propulsores, propulsoresBlurAux, propulsoresBlurAux2;
-
         private VertexBuffer screenQuadVB;
         private Microsoft.DirectX.Direct3D.Effect postProcessMerge, blurEffect;
 
@@ -54,20 +48,14 @@ namespace TGC.Group.Model
         //Scenes
         private NaveEspacial navePrincipal;
         private List<Escenario> escenarios;
-
-        //private NaveEnemiga nave1;
-
         private List<NaveEnemiga> enemigos;
 
         private TgcSkyBox skyBox;
 
-
+        //Movimiento
         private float movimientoZ = -2f;
-
         private float movimientoBaseZ = -2f;
-
         private float movimientoMaximoZ = -7.5f;
-
         private float factorMovimientoZ = 0.25f;
 
         public Torre torreta;
@@ -77,15 +65,6 @@ namespace TGC.Group.Model
         private Hud hud;
         private Surface depthStencil; // Depth-stencil buffer
         private Surface depthStencilOld;
-        private Microsoft.DirectX.Direct3D.Effect effect;
-        private TGCVector3 g_LightDir; // direccion de la luz actual
-        private TGCVector3 g_LightPos; // posicion de la luz actual (la que estoy analizando)
-        private TGCMatrix g_LightView; // matriz de view del light
-        private TGCMatrix g_mShadowProj; // Projection matrix for shadow map
-        private Surface g_pDSShadow; // Depth-stencil buffer for rendering to shadow map
-        private Texture g_pShadowMap; // Texture to which the shadow map is rendered
-        private readonly int SHADOWMAP_SIZE = 1024;
-        private Texture shadowScene;
 
         /// <summary>
         /// Representa el scene donde actualmente esta el jugador.
@@ -126,16 +105,26 @@ namespace TGC.Group.Model
             TGCBox.fromSize(new TGCVector3(-2000, 300, -13000), new TGCVector3(15,15,15), Color.White)
         };
 
+        // Shadow map
+        //private TGCVertex3fModifier lightLookFromModifier;
+        //private TGCVertex3fModifier lightLookAtModifier;
 
-        //Codigo De caja previo
-        /*//Caja que se muestra en el ejemplo.
-        private TGCBox Box { get; set; }
+        private readonly float far_plane = 50000f;
+        private readonly float near_plane = 2f;
 
-        //Mesh de TgcLogo.
-        private TgcMesh Mesh { get; set; }
 
-        //Boleano para ver si dibujamos el boundingbox
-        private bool BoundingBox { get; set; }*/
+        private readonly int SHADOWMAP_SIZE = 1024;
+        private TGCVector3 g_LightDir; // direccion de la luz actual
+        private TGCVector3 g_LightPos; // posicion de la luz actual (la que estoy analizando)
+        private TGCMatrix g_LightView; // matriz de view del light
+        private TGCMatrix g_mShadowProj; // Projection matrix for shadow map
+        private Surface g_pDSShadow; // Depth-stencil buffer for rendering to shadow map
+
+        private Texture g_pShadowMap; // Texture to which the shadow map is rendered
+
+        private bool dibujarGlow = true, dibujarShadowMap = true, dibujarLuces = true, spawnaearEnemigos = true, habilitarDisparosTorres = true;
+
+
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -168,16 +157,13 @@ namespace TGC.Group.Model
             escena = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth,
                 D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
-            propulsores = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
+            propulsores = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth,
                 D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
-            propulsoresBlurAux = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
-                D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight , 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
+            propulsoresBlurAux = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth,
+                D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
-            propulsoresBlurAux2 = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth ,
-                D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight , 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
-
-            shadowScene = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth,
+            propulsoresBlurAux2 = new Texture(D3DDevice.Instance.Device, D3DDevice.Instance.Device.PresentationParameters.BackBufferWidth,
                 D3DDevice.Instance.Device.PresentationParameters.BackBufferHeight, 1, Usage.RenderTarget, Format.X8R8G8B8, Pool.Default);
 
             //Device de DirectX para crear primitivas.
@@ -187,16 +173,14 @@ namespace TGC.Group.Model
                     D3DDevice.Instance.AspectRatio,
                     D3DDevice.Instance.ZNearPlaneDistance,
                     D3DDevice.Instance.ZFarPlaneDistance * 1.8f);
-            
+
             this.postProcessMerge = TgcShaders.loadEffect(this.ShadersDir + "PostProcess.fx");
             this.blurEffect = TgcShaders.loadEffect(this.ShadersDir + "GaussianBlur.fx");
-            this.effect = TgcShaders.loadEffect(this.ShadersDir + "ShadowMap.fx");
 
             blurEffect.SetValue("screen_dx", d3dDevice.PresentationParameters.BackBufferWidth);
             blurEffect.SetValue("screen_dy", d3dDevice.PresentationParameters.BackBufferHeight);
 
             this.escenarios = new List<Escenario>();
-
             this.enemigos = new List<NaveEnemiga>();
 
             //Crear SkyBox
@@ -213,7 +197,7 @@ namespace TGC.Group.Model
 
             skyBox.Init();
 
-            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml", 10, 250,null,250f);
+            this.navePrincipal = new NaveEspacial(MediaDir, "xwing-TgcScene.xml", Color.DarkBlue, 10, 250, null, 250f);
             this.navePrincipal.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.navePrincipal.RotationVector = new TGCVector3(0, FastMath.PI_HALF, 0);
             this.navePrincipal.MovementVector = new TGCVector3(1200f, -1100f, 4000f);
@@ -231,14 +215,10 @@ namespace TGC.Group.Model
             }
 
 
-            //enemigos[0].Relocate(new TGCVector3(0,0,-400f));
-
             //escenarios.ForEach(es => es.generarTorre(MediaDir));
             currentScene = escenarios[0];
 
-            this.SetShadowMap();
             this.navePrincipal.CreateOOB();
-            //this.nave1.CreateOOB();
             //Suelen utilizarse objetos que manejan el comportamiento de la camara.
             //Lo que en realidad necesitamos gráficamente es una matriz de View.
             //El framework maneja una cámara estática, pero debe ser inicializada.
@@ -259,7 +239,7 @@ namespace TGC.Group.Model
 
             //Cargo sonidos
             pathSonidoMenu = MediaDir + "Sound\\musica_menu.mp3";
-            pathSonidoAmbiente= MediaDir + "Music\\StarWarsMusic.mp3";
+            pathSonidoAmbiente = MediaDir + "Music\\StarWarsMusic.mp3";
             pathSonidoDisparo = MediaDir + "Music\\laserSound.wav";
 
             if (menu.playSonidoMenu)
@@ -272,6 +252,26 @@ namespace TGC.Group.Model
 
             drawer = new Drawer2D();
             hud = new Hud(MediaDir, Input);
+
+            //ShadowMap
+
+            // Creo el shadowmap.
+            // Format.R32F
+            // Format.X8R8G8B8
+            g_pShadowMap = new Texture(D3DDevice.Instance.Device, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 1, Usage.RenderTarget, Format.R32F, Pool.Default);
+
+            // tengo que crear un stencilbuffer para el shadowmap manualmente
+            // para asegurarme que tenga la el mismo tamano que el shadowmap, y que no tenga
+            // multisample, etc etc.
+            g_pDSShadow = D3DDevice.Instance.Device.CreateDepthStencilSurface(SHADOWMAP_SIZE, SHADOWMAP_SIZE, DepthFormat.D24S8, MultiSampleType.None, 0, true);
+            // por ultimo necesito una matriz de proyeccion para el shadowmap, ya
+            // que voy a dibujar desde el pto de vista de la luz.
+            // El angulo tiene que ser mayor a 45 para que la sombra no falle en los extremos del cono de luz
+            // de hecho, un valor mayor a 90 todavia es mejor, porque hasta con 90 grados es muy dificil
+            // lograr que los objetos del borde generen sombras
+            var aspectRatio = D3DDevice.Instance.AspectRatio;
+            g_mShadowProj = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(90), aspectRatio, 50, 15000);
+            D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(45.0f), aspectRatio, near_plane, far_plane).ToMatrix();
         }
 
 
@@ -290,6 +290,48 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }*/
+            if (Input.keyPressed(Key.G))
+            {
+                if (dibujarGlow)
+                    dibujarGlow = false;
+                else
+                    dibujarGlow = true;
+            }
+
+            if (Input.keyPressed(Key.M))
+            {
+                if (dibujarShadowMap)
+                    dibujarShadowMap = false;
+                else
+                    dibujarShadowMap = true;
+            }
+
+            if (Input.keyPressed(Key.L))
+            {
+                if (dibujarLuces)
+                    dibujarLuces = false;
+                else
+                    dibujarLuces = true;
+            }
+
+
+            if (Input.keyPressed(Key.E))
+            {
+                if (spawnaearEnemigos)
+                    spawnaearEnemigos = false;
+                else
+                    spawnaearEnemigos = true;
+            }
+
+            if (Input.keyPressed(Key.T))
+            {
+                if (habilitarDisparosTorres)
+                    habilitarDisparosTorres = false;
+                else
+                    habilitarDisparosTorres = true;
+            }
+
+
 
             if (menu.estaEnMenu)
             {
@@ -325,9 +367,9 @@ namespace TGC.Group.Model
                     movimientoNave.X = -1;
 
                 //Movimiento para elevarse con E y Control para bajar , todo sobre el eje Y.
-                if (Input.keyDown(Key.W)||Input.keyDown(Key.UpArrow))
+                if (Input.keyDown(Key.W) || Input.keyDown(Key.UpArrow))
                     movimientoNave.Y = 1;
-                else if (Input.keyDown(Key.S)||Input.keyDown(Key.DownArrow))
+                else if (Input.keyDown(Key.S) || Input.keyDown(Key.DownArrow))
                     movimientoNave.Y = -1;
 
                 //boost de velocidad con shift
@@ -350,47 +392,13 @@ namespace TGC.Group.Model
                 else
                     cant_pasadas = 2;
 
-                //if ((Input.keyDown(Key.Up) || Input.keyDown(Key.S)) && !Input.keyDown(Key.LeftShift))
-                //{
-                //    cant_pasadas = 0;
 
-                //}
-                /*if (movimientoZ < movimientoBaseZ)
-                {
-                    movimientoZ += factorMovimientoZ;
-                }
-
-                    movimientoNave.Z = movimientoZ;
-                */
-
-
-                //if ((Input.keyDown(Key.Up) || Input.keyDown(Key.W)) && !Input.keyDown(Key.LeftShift))
-                //{
-                //    if (movimientoZ < movimientoBaseZ)
-                //        movimientoZ += factorMovimientoZ;
-
-                //    movimientoNave.Z = movimientoZ;
-                //}
-                //Movernos adelante y atras, sobre el eje Z.
-                //movimientoNave.Y = Input.keyDown(Key.UpArrow) ? 1 : Input.keyDown(Key.DownArrow) ? -1 : 0;
 
                 if (movimientoZ < movimientoBaseZ)
                 {
                     movimientoZ += factorMovimientoZ;
                 }
                 movimientoNave.Z = movimientoZ;
-
-                //else if (Input.keyDown(Key.Up) || Input.keyDown(Key.W))
-                //{
-                //        movimientoNave.Z = movimientoBaseZ;
-                //}
-                //else if (Input.keyDown(Key.Down) || Input.keyDown(Key.S))
-                //{
-                //    if (movimientoZ <= 0)
-                //        movimientoZ -= movimientoBaseZ;
-                //    else
-                //        movimientoNave.Z = -movimientoBaseZ;
-                //}
 
                 //Activar rotaciones especiales
                 if (Input.keyDown(Key.Space))
@@ -408,7 +416,7 @@ namespace TGC.Group.Model
                     if (navePrincipal.Disparar(new TGCVector3((((D3DDevice.Instance.Width / 2) - Input.Xpos) * 10) + navePrincipal.MovementVector.X, navePrincipal.MovementVector.Y, navePrincipal.MovementVector.Z - 5000), pathSonidoDisparo, DirectSound.DsDevice))
                     {
                         //Aca va la posicion del disparo creo
-                       
+
                     }
                 }
                 if (Input.keyDown(Key.F))
@@ -417,8 +425,11 @@ namespace TGC.Group.Model
                     {
                     }
                 }
-                var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
-                torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition(), pathSonidoDisparo, DirectSound.DsDevice); torre.Update(ElapsedTime); });
+                if (habilitarDisparosTorres)
+                {
+                    var torretasEnRango = currentScene.TorresEnRango(navePrincipal.GetPosition());
+                    torretasEnRango.ForEach(torre => { torre.Disparar(navePrincipal.GetPosition(), pathSonidoDisparo, DirectSound.DsDevice); torre.Update(ElapsedTime); });
+                }
             }
             NaveEnemiga.resetearPosiciones();
 
@@ -437,28 +448,34 @@ namespace TGC.Group.Model
                 NaveEnemiga.resetearPosiciones();
 
                 // enemigosAlMismoTiempo pueden modificarse para aumentar o disminuir la dificultad, tambien para el modo god
-                if (enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).Count == 0)
+                if (spawnaearEnemigos)
                 {
-                    enemigos.FindAll(enemigo => !enemigo.EstaViva() || !enemigo.EnemigoEstaAdelante()).ForEach(nave=>nave.Relocate());
+                    if (enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).Count == 0)
+                    {
+                        enemigos.FindAll(enemigo => !enemigo.EstaViva() || !enemigo.EnemigoEstaAdelante()).ForEach(nave => nave.Relocate());
 
+                    }
                 }
             }
 
             // No permitir que se salga de los limites, el salto que hace para volver es medio brusco, se podria atenuar.
-            movimientoNave -= TGCVector3.Multiply(currentScene.CheckLimits(navePrincipal, movimientoNave), 7);
+            movimientoNave -= TGCVector3.Multiply(currentScene.CheckLimits(navePrincipal, movimientoNave), 10);
 
             //Actualiza la matrix de movimiento de la nave.
 
             this.navePrincipal.Move(movimientoNave * ElapsedTime);
             this.navePrincipal.Update(ElapsedTime);
-
-            enemigos.FindAll(enemigo => enemigo.EstaViva()).ForEach(enemigo =>
+            if (spawnaearEnemigos)
             {
-                enemigo.Perseguir(ElapsedTime, pathSonidoDisparo, DirectSound.DsDevice);
-                enemigo.Update(ElapsedTime);
-            }
+                enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
+                {
+                    enemigo.Perseguir(ElapsedTime, pathSonidoDisparo, DirectSound.DsDevice);
+                    enemigo.Update(ElapsedTime);
+                }
+
             );
-            var naves = enemigos.FindAll(enemigo => enemigo.EstaViva()).Select(e => (NaveEspacial)e).ToList();
+            }
+            var naves = enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()&&spawnaearEnemigos).Select(e => (NaveEspacial)e).ToList();
             naves.Add(navePrincipal);
             naves.ForEach(naveActual =>
             {
@@ -496,12 +513,15 @@ namespace TGC.Group.Model
                 this.navePrincipal.MoveTo(new TGCVector3(1200f, -1100f, 4000f) + currentScene.GetOffsetVectorMoved());
                 this.skyBox.Center = new TGCVector3(0, 0, -2300f) + currentScene.GetOffsetVectorMoved();
                 this.navePrincipal.Revivir();
+                this.sol.Position = new TGCVector3(0, 5000f, 4000f) + currentScene.GetOffsetVectorMoved();
                 this.menu.estaEnMenu = true;
             }
 
+
             this.skyBox.Center += movimientoNave * ElapsedTime * 1000;
             this.sol.Move(new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000);
-            estrellasS.ForEach(e => {
+            estrellasS.ForEach(e =>
+            {
                 e.Position += new TGCVector3(0, 0, movimientoNave.Z) * ElapsedTime * 1000;
             });
 
@@ -510,7 +530,7 @@ namespace TGC.Group.Model
             PostUpdate();
         }
 
-        public void RendeScene(Microsoft.DirectX.Direct3D.Device d3dDevice)
+        public void RenderScene(Microsoft.DirectX.Direct3D.Device d3dDevice)
         {
 
             d3dDevice.BeginScene();
@@ -519,25 +539,57 @@ namespace TGC.Group.Model
             estrellasS.ForEach(e => e.Render());
 
             // En esta pasada le aplicamos el efecto de luz metalica. con los enemigos no hace falta esto porque nunca cambian la technique.
-            navePrincipal.ActionOnNave(nave => nave.Technique = "DIFFUSE_MAP_PHONG");
-
+            if (dibujarShadowMap)
+            {
+                navePrincipal.ActionOnNave(nave => nave.Technique = "DIFFUSE_MAP_PHONG_CON_SHADOW");
+                enemigos.ForEach(e => e.ActionOnNave(m => m.Technique = "DIFFUSE_MAP_PHONG_CON_SHADOW"));
+                escenarios.ForEach(es => es.Scene.Meshes.ForEach(m => m.Technique = "DIFFUSE_MAP_PHONG_CON_SHADOW"));
+                escenarios.ForEach(es => es.torres.ForEach(t => t.Scene.Meshes.ForEach(m => m.Technique = "DIFFUSE_MAP_PHONG_CON_SHADOW")));
+            }
+            else if(dibujarLuces)
+            {
+                navePrincipal.ActionOnNave(nave => nave.Technique = "DIFFUSE_MAP_PHONG");
+                enemigos.ForEach(e => e.ActionOnNave(m => m.Technique = "DIFFUSE_MAP_PHONG"));
+                escenarios.ForEach(es => es.Scene.Meshes.ForEach(m => m.Technique = "DIFFUSE_MAP_PHONG"));
+                escenarios.ForEach(es => es.torres.ForEach(t => t.Scene.Meshes.ForEach(m => m.Technique = "DIFFUSE_MAP_PHONG")));
+            }
+            else
+            {
+                navePrincipal.ActionOnNave(nave => nave.Technique = "NO_EFFECTS");
+                enemigos.ForEach(e => e.ActionOnNave(m => m.Technique = "NO_EFFECTS"));
+                escenarios.ForEach(es => es.Scene.Meshes.ForEach(m => m.Technique = "NO_EFFECTS"));
+                escenarios.ForEach(es => es.torres.ForEach(t => t.Scene.Meshes.ForEach(m => m.Technique = "NO_EFFECTS")));
+            }
             this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
+
             navePrincipal.Render(sol.Position, Camara.Position);
 
             DirectSound.Listener3d.Position = navePrincipal.GetPosition();
 
-            this.escenarios.ForEach((es) => {
+            this.escenarios.ForEach((es) =>
+            {
                 es.TransformMatix = es.ScaleFactor * es.RotationMatrix() * es.MovementMatrix();
                 es.Render(sol.Position, Camara.Position, ElapsedTime);
             });
-
-            enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
+            if (spawnaearEnemigos)
             {
-                enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
-                enemigo.Render(sol.Position, Camara.Position);
+                enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(enemigo =>
+                {
+                    enemigo.TransformMatix = enemigo.ScaleFactor * enemigo.RotationMatrix() * enemigo.MovementMatrix();
+                    enemigo.Render(sol.Position, Camara.Position);
+                }
+                );
             }
-            );
+            if (!dibujarGlow)
+            {
+                navePrincipal.RenderDisparos();
+                if (spawnaearEnemigos)
+                {
+                    enemigos.ForEach(enemigo => enemigo.RenderDisparos());
 
+                    escenarios.ForEach(escenario => escenario.torres.ForEach(torre => torre.RenderDisparos()));
+                }
+            }
             if (menu.estaEnMenu)
             {
                 menu.Render(ElapsedTime, drawer);
@@ -547,11 +599,13 @@ namespace TGC.Group.Model
                 hud.Render(ElapsedTime, drawer);
             }
 
+
             d3dDevice.EndScene();
         }
 
         //SOLO PARA TESTING!!!!!!!!!!!!!! SI SE PONE EN TRUE SE GUARDAN LAS TEXTURAS QUE SE VAN GENERANDO EN EL MEDIA DIR.
         bool save = false;
+        private TGCVector3 desfase = new TGCVector3(-10f, 75f, 275f);
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
@@ -561,11 +615,27 @@ namespace TGC.Group.Model
         public override void Render()
         {
             //Inicio el render de la escena, para ejemplos simples. Cuando tenemos postprocesado o shaders es mejor realizar las operaciones según nuestra conveniencia.
-            
+
             ClearTextures();
 
             //Cargamos el Render Targer al cual se va a dibujar la escena 3D. Antes nos guardamos el surface original
             //En vez de dibujar a la pantalla, dibujamos a un buffer auxiliar, nuestro Render Target.
+
+
+            g_LightPos = navePrincipal.GetPosition() + desfase;
+            g_LightDir = navePrincipal.GetPosition() - g_LightPos;
+            g_LightDir.Normalize();
+
+            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+
+            //Genero el shadow map
+            if (dibujarShadowMap)
+            {
+                RenderShadowMap();
+            }
+
+            // dibujo la escena pp dicha
+            //D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
 
             var d3dDevice = D3DDevice.Instance.Device;
 
@@ -578,14 +648,9 @@ namespace TGC.Group.Model
             d3dDevice.SetRenderTarget(0, superficieEscena);
             // Probar de comentar esta linea, para ver como se produce el fallo en el ztest
             // por no soportar usualmente el multisampling en el render to texture (en nuevas placas de video)
-            //d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
-
-            //this.RenderShadowMap(sol.Position, navePrincipal.GetPosition());
-            //d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
-            //RenderShadowScene();
             d3dDevice.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
 
-            RendeScene(d3dDevice);
+            RenderScene(d3dDevice);
 
             superficieEscena.Dispose();
 
@@ -602,15 +667,19 @@ namespace TGC.Group.Model
 
             d3dDevice.BeginScene();
 
-            navePrincipal.ActionOnNave(nave => nave.Technique = "CortePropulsores");
+            if (dibujarGlow)
+            {
+                navePrincipal.ActionOnNave(nave => nave.Technique = "CortePropulsores");
 
-            navePrincipal.Render(TGCVector3.Empty, TGCVector3.Empty);
+                navePrincipal.RenderDisparos();
+                if (spawnaearEnemigos)
+                {
+                    enemigos.ForEach(enemigo => enemigo.RenderDisparos());
+                }
+                escenarios.ForEach(escenario => escenario.torres.ForEach(torre => torre.RenderDisparos()));
 
-            navePrincipal.RenderDisparos();
-
-            enemigos.ForEach(enemigo => enemigo.RenderDisparos());
-
-            escenarios.ForEach(escenario => escenario.torres.ForEach(torre => torre.RenderDisparos()));
+                navePrincipal.Render(TGCVector3.Empty, TGCVector3.Empty);
+            }
 
             d3dDevice.EndScene();
 
@@ -721,13 +790,12 @@ namespace TGC.Group.Model
 
             //Ahora volvemos a restaurar el Render Target original (osea dibujar a la pantalla)
             d3dDevice.SetRenderTarget(0, superficieVieja);
-            
+
 
             //Luego tomamos lo dibujado antes y lo combinamos con una textura con efecto de alarma
             RenderOnScreen(d3dDevice, ElapsedTime);
 
             //Finaliza el render y presenta en pantalla, al igual que el preRender se debe para casos puntuales es mejor utilizar a mano las operaciones de EndScene y PresentScene
-
 
         }
 
@@ -735,7 +803,7 @@ namespace TGC.Group.Model
         public void RenderOnScreen(Microsoft.DirectX.Direct3D.Device d3dDevice, float elapsedTime)
         {
             d3dDevice.BeginScene();
-            
+
             //Cargamos para renderizar el unico modelo que tenemos, un Quad que ocupa toda la pantalla, con la textura de todo lo dibujado antes
             d3dDevice.VertexFormat = CustomVertex.PositionTextured.Format;
             d3dDevice.SetStreamSource(0, screenQuadVB, 0);
@@ -744,8 +812,7 @@ namespace TGC.Group.Model
 
             //Cargamos parametros en el shader de Post-Procesado
             this.postProcessMerge.SetValue("escenaTextura", this.escena);
-            this.postProcessMerge.SetValue("shadowTexture", shadowScene);
-            if(cant_pasadas == 0)
+            if (cant_pasadas == 0)
                 this.postProcessMerge.SetValue("propulsoresTextura", this.propulsores);
             else
                 this.postProcessMerge.SetValue("propulsoresTextura", this.propulsoresBlurAux2);
@@ -763,6 +830,57 @@ namespace TGC.Group.Model
             RenderAxis();
             d3dDevice.EndScene();
             d3dDevice.Present();
+        }
+
+        public void RenderShadowMap()
+        {
+            var effect = TgcShaders.Instance.TgcMeshPointLightShader;
+            // Calculo la matriz de view de la luz
+            effect.SetValue("g_vLightPos", new Vector4(g_LightPos.X, g_LightPos.Y, g_LightPos.Z, 1));
+            effect.SetValue("g_vLightDir", new Vector4(g_LightDir.X, g_LightDir.Y, g_LightDir.Z, 1));
+            g_LightView = TGCMatrix.LookAtLH(g_LightPos, g_LightPos + g_LightDir, new TGCVector3(0, 0, 1));
+
+            // inicializacion standard:
+            effect.SetValue("g_mProjLight", g_mShadowProj.ToMatrix());
+
+            effect.SetValue("g_mViewLightProj", (g_LightView * g_mShadowProj).ToMatrix());
+
+            // Primero genero el shadow map, para ello dibujo desde el pto de vista de luz
+            // a una textura, con el VS y PS que generan un mapa de profundidades.
+            var pOldRT = D3DDevice.Instance.Device.GetRenderTarget(0);
+            var pShadowSurf = g_pShadowMap.GetSurfaceLevel(0);
+            D3DDevice.Instance.Device.SetRenderTarget(0, pShadowSurf);
+            var pOldDS = D3DDevice.Instance.Device.DepthStencilSurface;
+            D3DDevice.Instance.Device.DepthStencilSurface = g_pDSShadow;
+            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
+            D3DDevice.Instance.Device.BeginScene();
+
+            // Hago el render de la escena pp dicha
+            effect.SetValue("g_txShadow", g_pShadowMap);
+
+            navePrincipal.ActionOnNave(m => m.Technique = "RenderShadow");
+            navePrincipal.Render(sol.Position, Camara.Position);
+            if (spawnaearEnemigos)
+            {
+                enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(e => e.Scene.Meshes.ForEach(m => m.Technique = "RenderShadow"));
+                enemigos.FindAll(enemigo => enemigo.EstaViva() && enemigo.EnemigoEstaAdelante()).ForEach(e => e.Render(sol.Position, Camara.Position));
+            }
+            escenarios.ForEach(es => es.Scene.Meshes.ForEach(m => m.Technique = "RenderShadow"));
+            escenarios.ForEach(es => es.torres.ForEach(t => t.Scene.Meshes.ForEach(m => m.Technique = "RenderShadow")));
+            escenarios.ForEach(es => es.Render(sol.Position, Camara.Position, ElapsedTime));
+
+            // Termino
+            D3DDevice.Instance.Device.EndScene();
+
+            if (save)
+            {
+                TextureLoader.Save("shadowmap.jpg", ImageFileFormat.Jpg, g_pShadowMap);
+                save = false;
+            }
+
+            // restuaro el render target y el stencil
+            D3DDevice.Instance.Device.DepthStencilSurface = pOldDS;
+            D3DDevice.Instance.Device.SetRenderTarget(0, pOldRT);
         }
 
         public void RenderDebugText()
@@ -783,7 +901,7 @@ namespace TGC.Group.Model
             DrawText.drawText("Menu: ancho " + GameForm.MousePosition, 0, 385, Color.White);
             DrawText.drawText("Menu: alto" + TGCVector2.PrintVector2(menu.GetMenuPrincipal().tamanio()), 0, 400, Color.White);
             DrawText.drawText("Menu: posicion mouse" + TGCVector2.PrintVector2(new TGCVector2(Input.Xpos, Input.Ypos)), 0, 415, Color.White);
-            DrawText.drawText("Menu: hitbox" + TGCVector2.PrintVector2(menu.GetMenuPrincipal().tamanio()+menu.GetMenuPrincipal().posicion()), 0, 430, Color.White);
+            DrawText.drawText("Menu: hitbox" + TGCVector2.PrintVector2(menu.GetMenuPrincipal().tamanio() + menu.GetMenuPrincipal().posicion()), 0, 430, Color.White);
             DrawText.drawText("Tu vida: " + navePrincipal.Vida, 0, 150, Color.White);
         }
 
@@ -799,83 +917,8 @@ namespace TGC.Group.Model
             this.escenarios.ForEach(es => { es.Dispose(); });
             skyBox.Dispose();
             playerAmbiente.closeFile();
-        }
-        private void RenderShadowMap(TGCVector3 lightPosition, TGCVector3 lookAt)
-        {
-            g_LightPos = lightPosition;
-            g_LightDir = lookAt - lightPosition;
-            g_LightDir.Normalize();
-            // Calculo la matriz de view de la luz
-            effect.SetValue("g_vLightPos", new TGCVector4(g_LightPos.X, g_LightPos.Y, g_LightPos.Z, 1));
-            effect.SetValue("g_vLightDir", new TGCVector4(g_LightDir.X, g_LightDir.Y, g_LightDir.Z, 1));
-            g_LightView = TGCMatrix.LookAtLH(g_LightPos, g_LightPos + g_LightDir, new TGCVector3(0, 0, 1));
-
-            // inicializacion standard:
-            effect.SetValue("g_mProjLight", g_mShadowProj.ToMatrix());
-            effect.SetValue("g_mViewLightProj", (g_LightView * g_mShadowProj).ToMatrix());
-
-            // Primero genero el shadow map, para ello dibujo desde el pto de vista de luz
-            // a una textura, con el VS y PS que generan un mapa de profundidades.
-            var pOldRT = D3DDevice.Instance.Device.GetRenderTarget(0);
-            var pShadowSurf = g_pShadowMap.GetSurfaceLevel(0);
-            D3DDevice.Instance.Device.SetRenderTarget(0, pShadowSurf);
-            var pOldDS = D3DDevice.Instance.Device.DepthStencilSurface;
-            D3DDevice.Instance.Device.DepthStencilSurface = g_pDSShadow;
-
-            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
-            D3DDevice.Instance.Device.BeginScene();
-            // Hago el render de la escena pp dicha
-            effect.SetValue("g_txShadow", g_pShadowMap);
-            escenarios.ForEach(es => es.ForEachMesh(mesh => mesh.Technique = "RenderShadow"));
-            navePrincipal.Scene.Meshes.ForEach(mesh => mesh.Technique = "RenderShadow");
-            enemigos.ForEach(enemigo => enemigo.Scene.Meshes.ForEach(mesh => mesh.Technique = "RenderShadow"));
-            D3DDevice.Instance.Device.EndScene();
-            // restuaro el render target y el stencil
-            D3DDevice.Instance.Device.DepthStencilSurface = pOldDS;
-            D3DDevice.Instance.Device.SetRenderTarget(0, pOldRT);
-        }
-        private void SetShadowMap()
-        {
-            // Creo el shadowmap.
-            // Format.R32F
-            // Format.X8R8G8B8
-            g_pShadowMap = new Texture(D3DDevice.Instance.Device, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 1, Usage.RenderTarget, Format.R32F, Pool.Default);
-
-            // tengo que crear un stencilbuffer para el shadowmap manualmente
-            // para asegurarme que tenga la el mismo tamano que el shadowmap, y que no tenga
-            // multisample, etc etc.
-            g_pDSShadow = D3DDevice.Instance.Device.CreateDepthStencilSurface(SHADOWMAP_SIZE, SHADOWMAP_SIZE, DepthFormat.D24S8, MultiSampleType.None, 0, true);
-            // por ultimo necesito una matriz de proyeccion para el shadowmap, ya
-            // que voy a dibujar desde el pto de vista de la luz.
-            // El angulo tiene que ser mayor a 45 para que la sombra no falle en los extremos del cono de luz
-            // de hecho, un valor mayor a 90 todavia es mejor, porque hasta con 90 grados es muy dificil
-            // lograr que los objetos del borde generen sombras
-            var aspectRatio = D3DDevice.Instance.AspectRatio;
-            g_mShadowProj = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(80), aspectRatio, 50, 5000);
-            //float far_plane = 1500f;
-            // float near_plane = 2f;
-            D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(45.0f), aspectRatio, 2f, 15000f).ToMatrix();
-        }
-        private void RenderShadowScene()
-        {
-            // Primero genero el shadow map, para ello dibujo desde el pto de vista de luz
-            // a una textura, con el VS y PS que generan un mapa de profundidades.
-            var pOldRT = D3DDevice.Instance.Device.GetRenderTarget(0);
-            var pShadowSurf = shadowScene.GetSurfaceLevel(0);
-            D3DDevice.Instance.Device.SetRenderTarget(0, pShadowSurf);
-            var pOldDS = D3DDevice.Instance.Device.DepthStencilSurface;
-            D3DDevice.Instance.Device.DepthStencilSurface = g_pDSShadow;
-
-            D3DDevice.Instance.Device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, Color.Black, 1.0f, 0);
-            D3DDevice.Instance.Device.BeginScene();
-            // Hago el render de la escena pp dicha
-            escenarios.ForEach(es => es.ForEachMesh(mesh => mesh.Technique = "RenderScene"));
-            navePrincipal.Scene.Meshes.ForEach(mesh => mesh.Technique = "RenderScene");
-            enemigos.ForEach(enemigo => enemigo.Scene.Meshes.ForEach(mesh => mesh.Technique = "RenderScene"));
-            D3DDevice.Instance.Device.EndScene();
-            // restuaro el render target y el stencil
-            D3DDevice.Instance.Device.DepthStencilSurface = pOldDS;
-            D3DDevice.Instance.Device.SetRenderTarget(0, pOldRT);
+            g_pShadowMap.Dispose();
+            g_pDSShadow.Dispose();
         }
     }
 }

@@ -96,8 +96,8 @@ namespace TGC.Group
             e.UpdateBoundingBox();
             e.GenerarTorres(MediaDir, 2);
 
-            SetUpTerrainLight();
             e.ApplyLightEffect();
+            SetUpTerrainLight();
 
             return e;
         }

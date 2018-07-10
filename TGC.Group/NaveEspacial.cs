@@ -32,7 +32,7 @@ namespace TGC.Group
         private bool shouldRight90Spin = false;
         private bool stopSpinning = false;
         public Arma ArmaPrincipal { get; private set; }
-        private TGCVector3 shipShotSize = new TGCVector3(2f, 2f, 8f);
+        private TGCVector3 shipShotSize = new TGCVector3(5f, 5f, 10f);
 
         private Stopwatch coolDownMovimientos = null;
 
@@ -43,21 +43,21 @@ namespace TGC.Group
 
         public float AfterBurnFuel { get; set; } = 100;
         public bool shouldSpeedBoost = false;
+        protected float OOBScale=0.5f;
 
         public TgcBoundingOrientedBox OOB
         {
             private set; get;
         }
 
-        public NaveEspacial(string MediaDir, string modelToUse, int danio, int cdDisparo, string defaultTechnique = null, float minDistanceSound = -1f)
+        public NaveEspacial(string MediaDir, string modelToUse, Color color, int danio, int cdDisparo,string defaultTechnique = null, float minDistanceSound = -1f)
         {
             this.Scene = new TgcSceneLoader().loadSceneFromFile(MediaDir + "XWing/" + modelToUse, MediaDir + "XWing/");
             this.TransformMatix = TGCMatrix.Identity;
             this.ScaleFactor = TGCMatrix.Identity;
             this.RotationVector = TGCVector3.Empty;
             this.MovementVector = TGCVector3.Empty;
-
-            this.ArmaPrincipal = new Arma(shipShotSize, Color.Red, danio, cdDisparo, this.GetPosition(), minDistanceSound);
+            this.ArmaPrincipal = new Arma(shipShotSize, color, danio, cdDisparo, this.GetPosition(), minDistanceSound);
             this.coolDownMovimientos = Stopwatch.StartNew();
 
 
@@ -116,7 +116,7 @@ namespace TGC.Group
         public void CreateOOB()
         {
             //Hacemos un OOB a partir de un AABB mas chico porque el original es muy grande.
-            this.OOB = TgcBoundingOrientedBox.computeFromAABB(new TgcBoundingAxisAlignBox(TGCVector3.Multiply(Scene.BoundingBox.PMin, 0.5f), TGCVector3.Multiply(Scene.BoundingBox.PMax, 0.5f)));
+            this.OOB = TgcBoundingOrientedBox.computeFromAABB(new TgcBoundingAxisAlignBox(TGCVector3.Multiply(Scene.BoundingBox.PMin, OOBScale), TGCVector3.Multiply(Scene.BoundingBox.PMax, OOBScale)));
             this.OOB.move(this.MovementVector);
             this.OOB.rotate(this.RotationVector);
         }
@@ -354,7 +354,7 @@ namespace TGC.Group
         /// </summary>
         public void Morir()
         {
-            Vida = 0;
+            Vida -= 25;
         }
 
         public void Revivir()

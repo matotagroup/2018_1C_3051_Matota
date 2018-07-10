@@ -10,6 +10,7 @@ public class Torre
 {
     private TGCVector3 ScaleFactor { get; set; } 
     public TgcScene Scene { get; set; }
+    public TGCVector3 offsetDisparo = new TGCVector3(0, 0, -314f);
 
     public List<Disparo> disparos;
 
@@ -31,7 +32,7 @@ public class Torre
 
         ScaleFactor = new TGCVector3(5f, 5f, 5f);
         posicionArma.TryGetValue(new Tuple<string,float>(this.Scene.SceneName,0), out posicionInicialArma);
-        arma = new Arma(turretShotSize, Color.Green, 10, 250, posicionInicialArma);
+        arma = new Arma(turretShotSize, Color.DarkGreen, 10, 250, posicionInicialArma);
 
         this.ActionOnTorre(mesh => {
             mesh.AutoTransform = false;
@@ -63,7 +64,7 @@ public class Torre
 
     public void Disparar(TGCVector3 targetPosition, string soundPath, Microsoft.DirectX.DirectSound.Device device)
     {
-        this.arma.Disparar(targetPosition+new TGCVector3(0,0,-500f), soundPath, device);
+        this.arma.Disparar(targetPosition+offsetDisparo, soundPath, device);
     }
 
     public bool EnRango(TGCVector3 targetPosition)

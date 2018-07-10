@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,12 +26,12 @@ namespace TGC.Group
             new Tuple<TGCVector3,bool> (new TGCVector3 (500f,0,-10000f),true)
         };
 
-        public NaveEnemiga(string MediaDir, string modelToUse, int danio, int cdDisparo, NaveEspacial naveAPerseguir) : base(MediaDir, modelToUse, danio, cdDisparo, "DIFFUSE_MAP_PHONG")
+        public NaveEnemiga(string MediaDir, string modelToUse, int danio, int cdDisparo, NaveEspacial naveAPerseguir) : base(MediaDir, modelToUse, Color.DarkRed, danio, cdDisparo, "DIFFUSE_MAP_PHONG")
         {
             this.ScaleFactor = TGCMatrix.Scaling(0.5f, 0.5f, 0.5f);
             this.RotationVector = new TGCVector3(0, -FastMath.PI_HALF, 0);
             this.naveAPerseguir = naveAPerseguir;
-
+            OOBScale = 1f;
         }
 
         private bool EsIgual(float num1, float num2)
@@ -64,9 +65,9 @@ namespace TGC.Group
             if (EsIgual(coordenadaNave, coordenadaNaveAPerseguir))
                 return 0;
             else if (coordenadaNave > coordenadaNaveAPerseguir)
-                return -0.25f;
+                return -0.2f;
             else
-                return 0.25f;
+                return 0.2f;
         }
 
         private TGCVector3 ObtenerMovimiento()
@@ -74,7 +75,7 @@ namespace TGC.Group
             var movimiento = TGCVector3.Empty;
             movimiento.X = ObtenerDireccion(MovementVector.X, naveAPerseguir.GetPosition().X);
             movimiento.Y = ObtenerDireccion(MovementVector.Y, naveAPerseguir.GetPosition().Y);
-            movimiento.Z = 0.5f;
+            movimiento.Z = 0.1f;
             return movimiento;
         }
 
@@ -90,7 +91,7 @@ namespace TGC.Group
             this.MovementVector = naveAPerseguir.GetPosition() + getRelativePosition();
             ArmaPrincipal.Move(MovementVector);
             this.OOB.Center = MovementVector;
-            Revivir();
+            Vida=10;
         }
 
         private TGCVector3 getRelativePosition()
