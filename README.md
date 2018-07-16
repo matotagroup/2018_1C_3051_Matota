@@ -29,3 +29,7 @@ El juego es una copia del Star Wars donde una nave se desplaza por pasillos y es
 [![Screenshot 2](https://raw.githubusercontent.com/matotagroup/2018_1C_3051_Matota/master/TGC.Group/Media/screens/sc2.PNG)](https://raw.githubusercontent.com/matotagroup/2018_1C_3051_Matota/master/TGC.Group/Media/screens/sc2.PNG)
 
 [![Screenshot 3](https://raw.githubusercontent.com/matotagroup/2018_1C_3051_Matota/master/TGC.Group/Media/screens/sc3.PNG)](https://raw.githubusercontent.com/matotagroup/2018_1C_3051_Matota/master/TGC.Group/Media/screens/sc3.PNG)
+
+## Gameplay
+Hacer click para reproducir
+[![gameplay](http://img.youtube.com/vi/DiqKdP3TtlE/0.jpg)](https://youtu.be/DiqKdP3TtlE)
