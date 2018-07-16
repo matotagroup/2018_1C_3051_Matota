@@ -109,7 +109,7 @@ namespace TGC.Group.Model
         //private TGCVertex3fModifier lightLookFromModifier;
         //private TGCVertex3fModifier lightLookAtModifier;
 
-        private readonly float far_plane = 50000f;
+        private readonly float far_plane = 25000f;
         private readonly float near_plane = 2f;
 
 
@@ -124,7 +124,9 @@ namespace TGC.Group.Model
 
         private bool dibujarGlow = true, dibujarShadowMap = true, dibujarLuces = true, spawnaearEnemigos = true, habilitarDisparosTorres = true;
 
+        bool save = false;
 
+        private TGCVector3 desfase = new TGCVector3(-10f, 125f, 250f);
 
         /// <summary>
         ///     Se llama una sola vez, al principio cuando se ejecuta el ejemplo.
@@ -270,7 +272,7 @@ namespace TGC.Group.Model
             // de hecho, un valor mayor a 90 todavia es mejor, porque hasta con 90 grados es muy dificil
             // lograr que los objetos del borde generen sombras
             var aspectRatio = D3DDevice.Instance.AspectRatio;
-            g_mShadowProj = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(90), aspectRatio, 50, 15000);
+            g_mShadowProj = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(50), aspectRatio, 50, 15000);
             D3DDevice.Instance.Device.Transform.Projection = TGCMatrix.PerspectiveFovLH(Geometry.DegreeToRadian(45.0f), aspectRatio, near_plane, far_plane).ToMatrix();
         }
 
@@ -290,6 +292,30 @@ namespace TGC.Group.Model
             {
                 BoundingBox = !BoundingBox;
             }*/
+            if (Input.keyPressed(Key.C))
+            {
+                desfase.X -= 5;
+            }
+            if (Input.keyPressed(Key.V))
+            {
+                desfase.X += 5;
+            }
+            if (Input.keyPressed(Key.B))
+            {
+                desfase.Y -= 5;
+            }
+            if (Input.keyPressed(Key.N))
+            {
+                desfase.Y += 5;
+            }
+            if (Input.keyPressed(Key.H))
+            {
+                desfase.Z -= 5;
+            }
+            if (Input.keyPressed(Key.J))
+            {
+                desfase.Z += 5;
+            }
             if (Input.keyPressed(Key.G))
             {
                 if (dibujarGlow)
@@ -560,7 +586,7 @@ namespace TGC.Group.Model
                 escenarios.ForEach(es => es.Scene.Meshes.ForEach(m => m.Technique = "NO_EFFECTS"));
                 escenarios.ForEach(es => es.torres.ForEach(t => t.Scene.Meshes.ForEach(m => m.Technique = "NO_EFFECTS")));
             }
-            this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
+
 
             navePrincipal.Render(sol.Position, Camara.Position);
 
@@ -604,8 +630,7 @@ namespace TGC.Group.Model
         }
 
         //SOLO PARA TESTING!!!!!!!!!!!!!! SI SE PONE EN TRUE SE GUARDAN LAS TEXTURAS QUE SE VAN GENERANDO EN EL MEDIA DIR.
-        bool save = false;
-        private TGCVector3 desfase = new TGCVector3(-10f, 75f, 275f);
+
 
         /// <summary>
         ///     Se llama cada vez que hay que refrescar la pantalla.
@@ -621,6 +646,7 @@ namespace TGC.Group.Model
             //Cargamos el Render Targer al cual se va a dibujar la escena 3D. Antes nos guardamos el surface original
             //En vez de dibujar a la pantalla, dibujamos a un buffer auxiliar, nuestro Render Target.
 
+            this.navePrincipal.TransformMatix = navePrincipal.ScaleFactor * navePrincipal.RotationMatrix() * navePrincipal.MovementMatrix();
 
             g_LightPos = navePrincipal.GetPosition() + desfase;
             g_LightDir = navePrincipal.GetPosition() - g_LightPos;
@@ -824,7 +850,7 @@ namespace TGC.Group.Model
             d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
             this.postProcessMerge.EndPass();
             this.postProcessMerge.End();
-
+            DrawText.drawText("Desfase: " + TGCVector3.PrintVector3(desfase), 0, 500, Color.White);
             //Terminamos el renderizado de la escena
             RenderFPS();
             RenderAxis();
