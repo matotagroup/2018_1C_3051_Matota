@@ -850,7 +850,7 @@ namespace TGC.Group.Model
             d3dDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
             this.postProcessMerge.EndPass();
             this.postProcessMerge.End();
-            DrawText.drawText("Desfase: " + TGCVector3.PrintVector3(desfase), 0, 500, Color.White);
+            //DrawText.drawText("Desfase: " + TGCVector3.PrintVector3(desfase), 0, 500, Color.White);
             //Terminamos el renderizado de la escena
             RenderFPS();
             RenderAxis();
