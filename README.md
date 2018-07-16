@@ -18,10 +18,10 @@ El juego es una copia del Star Wars donde una nave se desplaza por pasillos y es
 
 ## Integrantes
 
-| Nombre | Legajo | GitHub |
-| ------ | ------ | ------ | 
-| Masotta, Augusto Martín | 159.620-2 | [@ammasotta](https://github.com/ammasotta) | 
-| Mendez Corridoni, Matías | 159.617-2 | [@corridonimatias](https://github.com/corridonimatias) |
+| Nombre | Legajo | GitHub |  Foto |
+| ------ | ------ | ------ | - |
+| Masotta, Augusto Martín | 159.620-2 | [@ammasotta](https://github.com/ammasotta) |  |
+| Mendez Corridoni, Matías | 159.617-2 | [@corridonimatias](https://github.com/corridonimatias) | ![mmc](https://media.licdn.com/dms/image/C4E03AQFNxbp-EQYbtQ/profile-displayphoto-shrink_100_100/0?e=1537401600&v=beta&t=zeN6mUd5BjI8qa8NR8mpHLslqdJbt7upvwSmpHC1jw0) |
 
 ## Screenshots
 [![Screenshot 1](https://raw.githubusercontent.com/matotagroup/2018_1C_3051_Matota/master/TGC.Group/Media/screens/sc1.PNG)](https://raw.githubusercontent.com/matotagroup/2018_1C_3051_Matota/master/TGC.Group/Media/screens/sc1.PNG)
